@@ -1,138 +1,378 @@
 :root {
-  --bg-light: #f5f7fa;
-  --bg-dark: #ffffff;
-  --primary: #1a73e8;
-  --secondary: #6c757d;
-  --success: #28a745;
-  --danger: #dc3545;
-  --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  --border-radius: 8px;
-  --spacing: 16px;
-  --transition: 0.3s;
+  
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-  font-family: var(--font-family);
-  background: var(--bg-light);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f4f7fa; /* Fundo cinza claro */
   color: #333;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
+  display: flex; /* Necessário para algumas telas terem layout flex direto no body */
+  min-height: 100vh; /* Garante que o body ocupe toda a altura */
 }
-.app {
-  display: flex;
-  flex: 1;
+
+a {
+  text-decoration: none;
+  color: inherit;
 }
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* --- Layout Principal (Com Sidebar) --- */
+.app-container {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+}
+
 .sidebar {
   width: 240px;
-  background: var(--bg-dark);
-  padding: var(--spacing);
+  background-color: #ffffff; /* Sidebar branca */
+  border-right: 1px solid #e0e4e8;
+  padding: 25px 15px;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing);
-  box-shadow: 2px 0 8px rgba(0,0,0,0.05);
+  flex-shrink: 0; /* Impede que a sidebar encolha */
 }
-.sidebar a {
-  text-decoration: none;
-  color: #333;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px;
-  border-radius: var(--border-radius);
-  transition: background var(--transition);
+
+.sidebar h2 {
+  font-size: 1.4em;
+  margin-bottom: 30px;
+  padding-left: 10px;
+  color: #2c3e50; /* Azul escuro para o título */
 }
-.sidebar a:hover, .sidebar a.active {
-  background: var(--bg-light);
+
+.sidebar nav ul {
+  list-style: none;
+  flex-grow: 1; /* Empurra o 'Sair' para baixo */
 }
-.sidebar .logo {
-  font-weight: bold;
-  font-size: 1.2rem;
-  margin-bottom: var(--spacing);
+
+.sidebar nav li a {
+  display: block;
+  padding: 12px 15px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  color: #555; /* Cor do texto do link */
+  font-weight: 500;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
-.content {
-  flex: 1;
-  padding: var(--spacing);
-  overflow-y: auto;
+
+.sidebar nav li a:hover {
+  background-color: #eef4ff; /* Fundo azul claro no hover */
+  color: #0056b3; /* Texto azul escuro no hover */
 }
-.cards {
-  display: flex;
-  gap: var(--spacing);
-  flex-wrap: wrap;
-  margin-bottom: var(--spacing);
+
+.sidebar nav li a.active {
+  background-color: #ddeafd; /* Fundo azul mais forte para ativo */
+  color: #004a99; /* Texto azul mais escuro para ativo */
+  font-weight: 600;
 }
-.card {
-  background: var(--bg-dark);
-  padding: var(--spacing);
-  flex: 1;
-  min-width: 180px;
-  border-radius: var(--border-radius);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+
+.sidebar .logout-link {
+  margin-top: auto; /* Empurra o Sair para o final */
 }
-.card.small {
-  max-width: 120px;
+
+
+.main-content {
+  flex-grow: 1; /* Ocupa o espaço restante */
+  padding: 30px 40px;
+  position: relative; /* Necessário para o FAB */
+  overflow-y: auto; /* Adiciona scroll se necessário */
 }
-.btn-add {
-  position: fixed;
-  bottom: var(--spacing);
-  right: var(--spacing);
+
+.main-content h1 {
+  font-size: 1.8em;
+  color: #2c3e50;
+  margin-bottom: 25px;
+}
+
+/* --- Botão Flutuante (FAB) --- */
+.fab {
+  position: fixed; /* Fixo na tela */
+  bottom: 30px;
+  right: 40px;
   width: 56px;
   height: 56px;
+  background-color: #007bff; /* Azul primário */
+  color: white;
+  border: none;
   border-radius: 50%;
-  background: var(--primary);
-  color: #fff;
-  border: none;
   font-size: 28px;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-  transition: background var(--transition);
-}
-.btn-add:hover { background: #1558b0; }
-
-.login-container {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.login-card {
-  background: var(--bg-dark);
-  padding: calc(var(--spacing) * 2);
-  border-radius: var(--border-radius);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  width: 320px;
-}
-.login-card h2 {
-  margin-bottom: var(--spacing);
-  font-size: 1.5rem;
+  line-height: 56px; /* Centraliza o '+' verticalmente */
   text-align: center;
-}
-.login-card input {
-  width: 100%;
-  padding: 8px;
-  margin-bottom: var(--spacing);
-  border: 1px solid #ccc;
-  border-radius: var(--border-radius);
-  transition: border var(--transition);
-}
-.login-card input:focus {
-  border-color: var(--primary);
-  outline: none;
-}
-.login-card button {
-  width: 100%;
-  padding: 10px;
-  background: var(--primary);
-  border: none;
-  color: #fff;
-  border-radius: var(--border-radius);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
   cursor: pointer;
-  transition: background var(--transition);
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  z-index: 1000;
 }
-.login-card button:hover {
-  background: #1558b0;
+
+.fab:hover {
+  background-color: #0056b3; /* Azul mais escuro no hover */
+  box-shadow: 0 6px 16px rgba(0, 86, 179, 0.5);
+}
+
+/* --- Tela de Login --- */
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  background-color: #f4f7fa;
+}
+
+.login-box {
+  background-color: #ffffff;
+  padding: 40px 50px;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  width: 100%;
+  max-width: 400px;
+}
+
+.login-box h1 {
+  color: #2c3e50;
+  margin-bottom: 30px;
+}
+
+.login-box .input-group {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.login-box label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #555;
+}
+
+.login-box input[type="text"],
+.login-box input[type="email"],
+.login-box input[type="password"] {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 1em;
+}
+
+.login-box input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
+}
+
+.login-box button {
+  width: 100%;
+  padding: 12px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 1.1em;
+  font-weight: 600;
+  transition: background-color 0.2s ease;
+}
+
+.login-box button:hover {
+  background-color: #0056b3;
+}
+
+/* --- Dashboard: Painel de Controle (Cards) --- */
+.stats-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* Responsivo */
+  gap: 25px;
+  margin-bottom: 40px;
+}
+
+.stat-card {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-left: 4px solid #007bff; /* Borda azul à esquerda */
+}
+
+.stat-card h3 {
+  font-size: 0.95em;
+  color: #666;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+.stat-card .value {
+  font-size: 2.2em;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 5px;
+}
+
+.stat-card .details {
+  font-size: 0.9em;
+  color: #777;
+}
+
+/* Variações de cor para os cards (opcional) */
+.stat-card.prazos { border-left-color: #ffc107; } /* Amarelo */
+.stat-card.atraso { border-left-color: #dc3545; } /* Vermelho */
+.stat-card.concluidas { border-left-color: #28a745; } /* Verde */
+
+/* --- Tela de Licitações: Lista e Filtros --- */
+.filters {
+  margin-bottom: 25px;
+  background-color: #fff;
+  padding: 15px 20px;
+  border-radius: 6px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.filters label {
+  margin-right: 10px;
+  font-weight: 500;
+}
+
+.filters select {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  min-width: 180px;
+}
+
+.licitacoes-list .licitacao-item {
+  background-color: #ffffff;
+  padding: 18px 25px;
+  margin-bottom: 12px;
+  border-radius: 6px;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.07);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  cursor: pointer;
+}
+
+.licitacoes-list .licitacao-item:hover {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.licitacao-item .info strong {
+  display: block;
+  font-size: 1.1em;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.licitacao-item .info span {
+  font-size: 0.9em;
+  color: #666;
+}
+
+.licitacao-item .prazo {
+  text-align: right;
+}
+
+.licitacao-item .prazo strong {
+   display: block;
+   font-size: 0.9em;
+   color: #888;
+   margin-bottom: 4px;
+   font-weight: 500;
+}
+.licitacao-item .prazo span {
+  font-size: 1em;
+  color: #dc3545; /* Vermelho para destacar prazo */
+  font-weight: 600;
+}
+
+
+/* --- Tela Detalhes da Licitação --- */
+.licitacao-details {
+  background-color: #ffffff;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 30px;
+}
+
+.licitacao-details p {
+  margin-bottom: 15px;
+  line-height: 1.6;
+}
+
+.licitacao-details strong {
+  color: #333;
+  margin-right: 8px;
+  min-width: 120px; /* Alinha um pouco os valores */
+  display: inline-block;
+}
+
+.actions-section {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+}
+
+.actions-section h2 {
+  font-size: 1.3em;
+  margin-bottom: 15px;
+  color: #444;
+}
+
+.actions-section button {
+  background-color: #6c757d; /* Cinza */
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 5px;
+  margin-right: 10px;
+  font-size: 0.95em;
+  transition: background-color 0.2s ease;
+}
+
+.actions-section button:hover {
+  background-color: #5a6268;
+}
+
+
+/* --- Tela de Administração --- */
+.user-list .user-item { /* Similar à lista de licitações */
+  background-color: #ffffff;
+  padding: 15px 25px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.07);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.user-item .info strong {
+  display: block;
+  font-size: 1.1em;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.user-item .info span {
+  font-size: 0.9em;
+  color: #666;
+}
+
+.user-item .permissions span {
+  font-weight: 500;
+  color: #007bff; /* Azul para destacar permissão */
+  background-color: #e7f3ff;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.85em;
+}
+.main-content .sidebar,
+.page-content .sidebar,
+.dashboard-content .sidebar {
+  display: none;
 }
