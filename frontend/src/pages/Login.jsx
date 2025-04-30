@@ -17,10 +17,11 @@ function Login() {
         console.log('Tentando login com:', { email, senha });
 
         try {
-
-            console.log('Enviando requisição para:', `${api.defaults.baseURL}/api/auth/login`);
+            // Corrigido: removido o prefixo '/api' duplicado
+            console.log('Enviando requisição para:', `${api.defaults.baseURL}/auth/login`);
         
-            const response = await api.post('/api/auth/login', {
+            // Corrigido: removido o prefixo '/api' duplicado
+            const response = await api.post('/auth/login', {
                 email,
                 senha
             });

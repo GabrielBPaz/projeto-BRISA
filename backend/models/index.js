@@ -56,6 +56,11 @@ Alerta.belongsTo(Usuario,     { foreignKey: 'usuario_id',   as: 'usuario' });
 HistoricoInteracao.belongsTo(Licitacao, { foreignKey: 'licitacao_id', as: 'licitacao' });
 HistoricoInteracao.belongsTo(Usuario,   { foreignKey: 'usuario_id', as: 'usuario' });
 
+// Usuário pertence a uma Empresa
+Usuario.belongsTo(Empresa, { foreignKey: 'empresa_id', as: 'empresa' });
+Empresa.hasMany(Usuario, { foreignKey: 'empresa_id', as: 'usuarios' });
+
+
 
 // Exportando tudo
 module.exports = {

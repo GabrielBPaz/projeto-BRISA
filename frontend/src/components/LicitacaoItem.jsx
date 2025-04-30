@@ -1,18 +1,20 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom'; // Importar Link para navegação
 
-// Recebe dados da licitação como props
-function LicitacaoItem({ id, orgao, cidadeUF, proximaEntrega }) {
+function LicitacaoItem({ id, orgao, cidadeUF, proximaEntrega, status, empresa }) {
     return (
-        // Link para a página de detalhes, passando o ID na URL
-        <Link to={`/licitacoes/${id}`} className="licitacao-item">
-            <div className="info">
-                <strong>{orgao}</strong>
-                <span>{cidadeUF}</span>
-            </div>
-            <div className="prazo">
-                <strong>Próxima Entrega:</strong>
-                <span>{proximaEntrega}</span>
+        // Envolver o item com Link para torná-lo clicável
+        <Link to={`/licitacoes/${id}`} className="licitacao-item-link">
+            <div className="licitacao-item">
+                <div className="licitacao-info">
+                    <h3>{orgao}</h3>
+                    <p>{cidadeUF}</p>
+                    <p>Empresa: {empresa}</p> 
+                </div>
+                <div className="licitacao-status">
+                    <p>Status: <span className={`status-${status?.toLowerCase().replace(/\s+/g, '-')}`}>{status}</span></p>
+                    <p>Próxima Abertura/Entrega: {proximaEntrega}</p>
+                </div>
             </div>
         </Link>
     );

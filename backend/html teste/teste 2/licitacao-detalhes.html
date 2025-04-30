@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes da Licitação - Gestão de Licitações</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="app-page">
+    <!-- Sidebar de navegação -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Gestão de Licitações</h2>
+        </div>
+        <div class="sidebar-menu">
+            <ul>
+                <li>
+                    <a href="dashboard.html">
+                        <i class="icon dashboard-icon"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="active">
+                    <a href="licitacoes.html">
+                        <i class="icon licitacoes-icon"></i>
+                        <span>Licitações</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <i class="icon relatorios-icon"></i>
+                        <span>Relatórios</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="admin.html">
+                        <i class="icon admin-icon"></i>
+                        <span>Administração</span>
+                    </a>
+                </li>
+                <li class="sidebar-bottom">
+                    <a href="login.html">
+                        <i class="icon sair-icon"></i>
+                        <span>Sair</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Conteúdo principal -->
+    <div class="main-content">
+        <div class="page-header with-back-button">
+            <a href="licitacoes.html" class="back-button">
+                <i class="icon back-icon"></i>
+                <span>Voltar</span>
+            </a>
+            <h1>Prefeitura Municipal de São Paulo</h1>
+            <div class="status-badge em-andamento">Em Andamento</div>
+        </div>
+
+        <!-- Informações gerais da licitação -->
+        <div class="detail-section">
+            <div class="detail-header">
+                <h2>Informações Gerais</h2>
+                <button class="btn-icon btn-edit" title="Editar"></button>
+            </div>
+            <div class="detail-content">
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <div class="detail-label">Número do Contrato</div>
+                        <div class="detail-value">PMSP-2025/0123</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Data de Início</div>
+                        <div class="detail-value">01/01/2025</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Data de Término</div>
+                        <div class="detail-value">31/12/2025</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Valor</div>
+                        <div class="detail-value">R$ 1.250.000,00</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Cidade/UF</div>
+                        <div class="detail-value">São Paulo/SP</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Responsável</div>
+                        <div class="detail-value">João Silva</div>
+                    </div>
+                </div>
+                <div class="detail-description">
+                    <div class="detail-label">Descrição</div>
+                    <div class="detail-value">
+                        Fornecimento de materiais de escritório para as secretarias municipais da Prefeitura de São Paulo, incluindo papel, canetas, grampeadores, entre outros itens de papelaria.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Abas de conteúdo -->
+        <div class="tabs-container">
+            <div class="tabs-header">
+                <button class="tab-button active" data-tab="empenhos">Empenhos</button>
+                <button class="tab-button" data-tab="documentos">Documentos</button>
+                <button class="tab-button" data-tab="comentarios">Comentários</button>
+                <button class="tab-button" data-tab="historico">Histórico</button>
+            </div>
+            
+            <!-- Conteúdo da aba Empenhos -->
+            <div class="tab-content active" id="empenhos-tab">
+                <div class="tab-header">
+                    <h3>Empenhos</h3>
+                    <div class="tab-actions">
+                        <button class="btn btn-primary btn-sm">Adicionar Empenho</button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Número</th>
+                                <th>Data</th>
+                                <th>Valor</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>2025NE000123</td>
+                                <td>15/01/2025</td>
+                                <td>R$ 250.000,00</td>
+                                <td><span class="status-badge concluido">Pago</span></td>
+                                <td>
+                                    <button class="btn-icon btn-view" title="Ver detalhes"></button>
+                                    <button class="btn-icon btn-edit" title="Editar"></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2025NE000456</td>
+                                <td>15/03/2025</td>
+                                <td>R$ 300.000,00</td>
+                                <td><span class="status-badge em-andamento">Em Processamento</span></td>
+                                <td>
+                                    <button class="btn-icon btn-view" title="Ver detalhes"></button>
+                                    <button class="btn-icon btn-edit" title="Editar"></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Conteúdo da aba Documentos -->
+            <div class="tab-content" id="documentos-tab">
+                <div class="tab-header">
+                    <h3>Documentos</h3>
+                    <div class="tab-actions">
+                        <button class="btn btn-primary btn-sm">Adicionar Documento</button>
+                    </div>
+                </div>
+                <div class="documents-grid">
+                    <div class="document-card">
+                        <div class="document-icon pdf"></div>
+                        <div class="document-info">
+                            <div class="document-title">Contrato Original</div>
+                            <div class="document-meta">PDF • 2.5 MB • Adicionado em 01/01/2025</div>
+                        </div>
+                        <div class="document-actions">
+                            <button class="btn-icon btn-download" title="Baixar"></button>
+                            <button class="btn-icon btn-delete" title="Excluir"></button>
+                        </div>
+                    </div>
+                    <div class="document-card">
+                        <div class="document-icon doc"></div>
+                        <div class="document-info">
+                            <div class="document-title">Proposta Técnica</div>
+                            <div class="document-meta">DOCX • 1.8 MB • Adicionado em 15/12/2024</div>
+                        </div>
+                        <div class="document-actions">
+                            <button class="btn-icon btn-download" title="Baixar"></button>
+                            <button class="btn-icon btn-delete" title="Excluir"></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Conteúdo da aba Comentários -->
+            <div class="tab-content" id="comentarios-tab">
+                <div class="tab-header">
+                    <h3>Comentários</h3>
+                </div>
+                <div class="comments-container">
+                    <div class="comment-item">
+                        <div class="comment-avatar">MS</div>
+                        <div class="comment-content">
+                            <div class="comment-header">
+                                <div class="comment-author">Maria Santos</div>
+                                <div class="comment-date">15/03/2025 às 14:30</div>
+                            </div>
+                            <div class="comment-text">
+                                Empenho 2025NE000456 foi processado hoje. Aguardando confirmação de pagamento.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="comment-item">
+                        <div class="comment-avatar">JS</div>
+                        <div class="comment-content">
+                            <div class="comment-header">
+                                <div class="comment-author">João Silva</div>
+                                <div class="comment-date">10/02/2025 às 09:15</div>
+                            </div>
+                            <div class="comment-text">
+                                Reunião com o gestor do contrato agendada para 20/02/2025.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="comment-form">
+                    <textarea placeholder="Escreva um comentário..." rows="3"></textarea>
+                    <button class="btn btn-primary">Enviar</button>
+                </div>
+            </div>
+            
+            <!-- Conteúdo da aba Histórico -->
+            <div class="tab-content" id="historico-tab">
+                <div class="tab-header">
+                    <h3>Histórico</h3>
+                </div>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-date">15/03/2025</div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">Empenho Adicionado</div>
+                            <div class="timeline-description">Empenho 2025NE000456 no valor de R$ 300.000,00 foi adicionado por Maria Santos.</div>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-date">15/01/2025</div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">Empenho Adicionado</div>
+                            <div class="timeline-description">Empenho 2025NE000123 no valor de R$ 250.000,00 foi adicionado por João Silva.</div>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-date">01/01/2025</div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">Licitação Criada</div>
+                            <div class="timeline-description">Licitação foi criada por João Silva.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botão flutuante para adicionar -->
+    <div class="floating-button" id="addItemBtn">
+        <span>+</span>
+    </div>
+
+    <!-- Menu flutuante de opções -->
+    <div class="floating-menu" id="addItemMenu">
+        <div class="floating-menu-item">Adicionar Empenho</div>
+        <div class="floating-menu-item">Adicionar Documento</div>
+        <div class="floating-menu-item">Adicionar Comentário</div>
+    </div>
+</body>
+</html>

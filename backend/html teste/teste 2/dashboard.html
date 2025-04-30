@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Gestão de Licitações</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="app-page">
+    <!-- Sidebar de navegação -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Gestão de Licitações</h2>
+        </div>
+        <div class="sidebar-menu">
+            <ul>
+                <li class="active">
+                    <a href="dashboard.html">
+                        <i class="icon dashboard-icon"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="licitacoes.html">
+                        <i class="icon licitacoes-icon"></i>
+                        <span>Licitações</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <i class="icon relatorios-icon"></i>
+                        <span>Relatórios</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="admin.html">
+                        <i class="icon admin-icon"></i>
+                        <span>Administração</span>
+                    </a>
+                </li>
+                <li class="sidebar-bottom">
+                    <a href="login.html">
+                        <i class="icon sair-icon"></i>
+                        <span>Sair</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Conteúdo principal -->
+    <div class="main-content">
+        <div class="page-header">
+            <h1>Dashboard</h1>
+            <p>Visão geral das suas licitações e atividades</p>
+        </div>
+
+        <!-- Cards de estatísticas -->
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-icon licitacoes-ativas"></div>
+                <div class="stat-content">
+                    <h3>Licitações Ativas</h3>
+                    <div class="stat-value">0</div>
+                    <div class="stat-trend positive">+4.75%</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon proximos-prazos"></div>
+                <div class="stat-content">
+                    <h3>Próximos Prazos</h3>
+                    <div class="stat-value">0</div>
+                    <div class="stat-period">2 esta semana</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon em-atraso"></div>
+                <div class="stat-content">
+                    <h3>Em Atraso</h3>
+                    <div class="stat-value">0</div>
+                    <div class="stat-period">2</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon concluidas"></div>
+                <div class="stat-content">
+                    <h3>Concluídas</h3>
+                    <div class="stat-value">0</div>
+                    <div class="stat-period">3</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Licitações em andamento -->
+        <div class="section-header">
+            <h2>Licitações em Andamento</h2>
+        </div>
+        <div class="licitacoes-container">
+            <div class="licitacoes-column">
+                <div class="column-header">
+                    <h3>Pendente</h3>
+                </div>
+                <div class="column-content empty">
+                    <!-- Conteúdo vazio para demonstração -->
+                </div>
+            </div>
+            <div class="licitacoes-column">
+                <div class="column-header">
+                    <h3>Em Andamento</h3>
+                </div>
+                <div class="column-content empty">
+                    <!-- Conteúdo vazio para demonstração -->
+                </div>
+            </div>
+            <div class="licitacoes-column">
+                <div class="column-header">
+                    <h3>Concluído</h3>
+                </div>
+                <div class="column-content empty">
+                    <!-- Conteúdo vazio para demonstração -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botão flutuante para adicionar nova licitação -->
+    <div class="floating-button" id="addLicitacaoBtn">
+        <span>+</span>
+    </div>
+
+    <!-- Modal para adicionar nova licitação -->
+    <div class="modal" id="novaLicitacaoModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Nova Licitação</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="novaLicitacaoForm">
+                    <div class="form-group">
+                        <label for="nomeLicitacao">Nome da Licitação</label>
+                        <input type="text" id="nomeLicitacao" name="nomeLicitacao" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="numeroContrato">Número do Contrato</label>
+                        <input type="text" id="numeroContrato" name="numeroContrato" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group half">
+                            <label for="dataInicio">Data de Início</label>
+                            <input type="date" id="dataInicio" name="dataInicio" required>
+                        </div>
+                        <div class="form-group half">
+                            <label for="dataTermino">Data de Término</label>
+                            <input type="date" id="dataTermino" name="dataTermino" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="valor">Valor</label>
+                        <div class="input-with-prefix">
+                            <span class="prefix">R$</span>
+                            <input type="number" id="valor" name="valor" step="0.01" min="0" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="descricao">Descrição</label>
+                        <textarea id="descricao" name="descricao" rows="4"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="cancelarBtn">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Criar Licitação</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administração - Gestão de Licitações</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+         <aside class="sidebar">
+            <h2>Gestão de Licitações</h2>
+            <nav>
+                <ul>
+                    <li><a href="dashboard.html">Dashboard</a></li>
+                    <li><a href="licitacoes.html">Licitações</a></li>
+                    <li><a href="#">Relatórios</a></li>
+                    <li><a href="admin.html" class="active">Administração</a></li>
+                </ul>
+            </nav>
+            <a href="login.html" class="logout-link">Sair</a>
+        </aside>
+
+        <main class="main-content">
+            <h1>Administração</h1>
+            <p>Gerenciamento de usuários do sistema.</p>
+
+            <div class="user-list">
+                 <div class="user-item">
+                     <div class="info">
+                         <strong>Nome Completo do Funcionário</strong>
+                         <span>funcionario@empresa.com</span>
+                     </div>
+                     <div class="permissions">
+                         <span>Admin</span> </div>
+                     </div>
+
+                 <div class="user-item">
+                     <div class="info">
+                         <strong>Outro Usuário</strong>
+                         <span>outro.usuario@empresa.com</span>
+                     </div>
+                     <div class="permissions">
+                         <span>Usuário Padrão</span>
+                     </div>
+                 </div>
+                 </div>
+
+
+            <button class="fab" title="Adicionar Novo Usuário">+</button>
+        </main>
+    </div>
+</body>
+</html>

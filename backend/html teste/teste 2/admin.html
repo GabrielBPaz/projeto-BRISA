@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administração - Gestão de Licitações</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="app-page">
+    <!-- Sidebar de navegação -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Gestão de Licitações</h2>
+        </div>
+        <div class="sidebar-menu">
+            <ul>
+                <li>
+                    <a href="dashboard.html">
+                        <i class="icon dashboard-icon"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="licitacoes.html">
+                        <i class="icon licitacoes-icon"></i>
+                        <span>Licitações</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <i class="icon relatorios-icon"></i>
+                        <span>Relatórios</span>
+                    </a>
+                </li>
+                <li class="active">
+                    <a href="admin.html">
+                        <i class="icon admin-icon"></i>
+                        <span>Administração</span>
+                    </a>
+                </li>
+                <li class="sidebar-bottom">
+                    <a href="login.html">
+                        <i class="icon sair-icon"></i>
+                        <span>Sair</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Conteúdo principal -->
+    <div class="main-content">
+        <div class="page-header">
+            <h1>Administração</h1>
+            <p>Gerencie usuários e permissões do sistema</p>
+        </div>
+
+        <!-- Abas de conteúdo -->
+        <div class="tabs-container">
+            <div class="tabs-header">
+                <button class="tab-button active" data-tab="usuarios">Usuários</button>
+                <button class="tab-button" data-tab="permissoes">Permissões</button>
+                <button class="tab-button" data-tab="configuracoes">Configurações</button>
+            </div>
+            
+            <!-- Conteúdo da aba Usuários -->
+            <div class="tab-content active" id="usuarios-tab">
+                <div class="tab-header">
+                    <h3>Usuários</h3>
+                    <div class="tab-actions">
+                        <input type="text" placeholder="Buscar usuário..." class="filter-search">
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>E-mail</th>
+                                <th>Cargo</th>
+                                <th>Nível de Acesso</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>João Silva</td>
+                                <td>joao.silva@empresa.com.br</td>
+                                <td>Gerente de Licitações</td>
+                                <td>Administrador</td>
+                                <td><span class="status-badge ativo">Ativo</span></td>
+                                <td>
+                                    <button class="btn-icon btn-edit" title="Editar"></button>
+                                    <button class="btn-icon btn-delete" title="Excluir"></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Maria Santos</td>
+                                <td>maria.santos@empresa.com.br</td>
+                                <td>Analista de Licitações</td>
+                                <td>Editor</td>
+                                <td><span class="status-badge ativo">Ativo</span></td>
+                                <td>
+                                    <button class="btn-icon btn-edit" title="Editar"></button>
+                                    <button class="btn-icon btn-delete" title="Excluir"></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Pedro Oliveira</td>
+                                <td>pedro.oliveira@empresa.com.br</td>
+                                <td>Assistente Administrativo</td>
+                                <td>Visualizador</td>
+                                <td><span class="status-badge inativo">Inativo</span></td>
+                                <td>
+                                    <button class="btn-icon btn-edit" title="Editar"></button>
+                                    <button class="btn-icon btn-delete" title="Excluir"></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination">
+                    <button class="pagination-btn prev" disabled>&lt;</button>
+                    <button class="pagination-btn active">1</button>
+                    <button class="pagination-btn">2</button>
+                    <button class="pagination-btn next">&gt;</button>
+                </div>
+            </div>
+            
+            <!-- Conteúdo da aba Permissões -->
+            <div class="tab-content" id="permissoes-tab">
+                <div class="tab-header">
+                    <h3>Níveis de Permissão</h3>
+                </div>
+                <div class="permission-cards">
+                    <div class="permission-card">
+                        <div class="permission-header">
+                            <h4>Administrador</h4>
+                            <button class="btn-icon btn-edit" title="Editar"></button>
+                        </div>
+                        <div class="permission-content">
+                            <p>Acesso total ao sistema, incluindo:</p>
+                            <ul class="permission-list">
+                                <li>Gerenciar usuários e permissões</li>
+                                <li>Criar, editar e excluir licitações</li>
+                                <li>Acessar todos os relatórios</li>
+                                <li>Configurar parâmetros do sistema</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="permission-card">
+                        <div class="permission-header">
+                            <h4>Editor</h4>
+                            <button class="btn-icon btn-edit" title="Editar"></button>
+                        </div>
+                        <div class="permission-content">
+                            <p>Acesso para gerenciar licitações, incluindo:</p>
+                            <ul class="permission-list">
+                                <li>Criar, editar e excluir licitações</li>
+                                <li>Adicionar documentos e empenhos</li>
+                                <li>Acessar relatórios básicos</li>
+                                <li>Sem acesso às configurações do sistema</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="permission-card">
+                        <div class="permission-header">
+                            <h4>Visualizador</h4>
+                            <button class="btn-icon btn-edit" title="Editar"></button>
+                        </div>
+                        <div class="permission-content">
+                            <p>Acesso somente para visualização, incluindo:</p>
+                            <ul class="permission-list">
+                                <li>Visualizar licitações e seus detalhes</li>
+                                <li>Adicionar comentários</li>
+                                <li>Acessar relatórios básicos</li>
+                                <li>Sem permissão para criar ou editar dados</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Conteúdo da aba Configurações -->
+            <div class="tab-content" id="configuracoes-tab">
+                <div class="tab-header">
+                    <h3>Configurações do Sistema</h3>
+                </div>
+                <div class="settings-form">
+                    <div class="form-section">
+                        <h4>Informações da Empresa</h4>
+                        <div class="form-group">
+                            <label for="nomeEmpresa">Nome da Empresa</label>
+                            <input type="text" id="nomeEmpresa" value="Empresa de Licitações LTDA">
+                        </div>
+                        <div class="form-group">
+                            <label for="cnpjEmpresa">CNPJ</label>
+                            <input type="text" id="cnpjEmpresa" value="12.345.678/0001-90">
+                        </div>
+                        <div class="form-group">
+                            <label for="emailContato">E-mail de Contato</label>
+                            <input type="email" id="emailContato" value="contato@empresa.com.br">
+                        </div>
+                    </div>
+                    <div class="form-section">
+                        <h4>Notificações</h4>
+                        <div class="form-group checkbox">
+                            <input type="checkbox" id="notifPrazos" checked>
+                            <label for="notifPrazos">Notificar sobre prazos próximos (7 dias)</label>
+                        </div>
+                        <div class="form-group checkbox">
+                            <input type="checkbox" id="notifEmpenhos" checked>
+                            <label for="notifEmpenhos">Notificar sobre novos empenhos</label>
+                        </div>
+                        <div class="form-group checkbox">
+                            <input type="checkbox" id="notifComentarios" checked>
+                            <label for="notifComentarios">Notificar sobre novos comentários</label>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-primary">Salvar Configurações</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botão flutuante para adicionar novo usuário -->
+    <div class="floating-button" id="addUsuarioBtn">
+        <span>+</span>
+    </div>
+
+    <!-- Modal para adicionar novo usuário -->
+    <div class="modal" id="novoUsuarioModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Novo Usuário</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="novoUsuarioForm">
+                    <div class="form-group">
+                        <label for="nomeUsuario">Nome Completo</label>
+                        <input type="text" id="nomeUsuario" name="nomeUsuario" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="emailUsuario">E-mail</label>
+                        <input type="email" id="emailUsuario" name="emailUsuario" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cargoUsuario">Cargo</label>
+                        <input type="text" id="cargoUsuario" name="cargoUsuario" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="nivelAcesso">Nível de Acesso</label>
+                        <select id="nivelAcesso" name="nivelAcesso" required>
+                            <option value="">Selecione um nível</option>
+                            <option value="admin">Administrador</option>
+                            <option value="editor">Editor</option>
+                            <option value="viewer">Visualizador</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="senhaUsuario">Senha</label>
+                        <input type="password" id="senhaUsuario" name="senhaUsuario" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmarSenha">Confirmar Senha</label>
+                        <input type="password" id="confirmarSenha" name="confirmarSenha" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="cancelarBtn">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Criar Usuário</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

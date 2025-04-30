@@ -1,124 +1,109 @@
-// Middleware para verificar se o usuário tem permissão para acessar recursos específicos
-const { Usuario } = require('../models');
-const jwt = require('jsonwebtoken');
-require('dotenv').config();
-
-// Chave secreta para JWT - vem de variável de ambiente
-const JWT_SECRET = process.env.JWT_SECRET || 'brisa_jwt_secret_key_2025';
+const jwt = require("jsonwebtoken");
+const { Usuario } = require("../models"); // Removido Empresa, não usado aqui
+require("dotenv").config();
 
 // Middleware para verificar autenticação
-const authMiddleware = (req, res, next) => {
-  // Obter o token do cabeçalho Authorization
-  const authHeader = req.headers.authorization;
+exports.authMiddleware = async (req, res, next) => {
   
-  if (!authHeader) {
-    return res.status(401).json({ 
-      success: false, 
-      message: 'Token não fornecido' 
-    });
-  }
+  try {
+    // Bypass de autenticação comentado
+    // const bypassAuth = process.env.NODE_ENV !== "production";
+    // if (bypassAuth) { ... }
 
-  // Formato esperado: "Bearer [token]"
-  const parts = authHeader.split(' ');
-  
-  if (parts.length !== 2) {
-    return res.status(401).json({ 
-      success: false, 
-      message: 'Erro no formato do token' 
-    });
-  }
-
-  const [scheme, token] = parts;
-  
-  if (!/^Bearer$/i.test(scheme)) {
-    return res.status(401).json({ 
-      success: false, 
-      message: 'Token mal formatado' 
-    });
-  }
-
-  // Verificar se o token é válido
-  jwt.verify(token, JWT_SECRET, (err, decoded) => {
-    if (err) {
-      return res.status(401).json({ 
-        success: false, 
-        message: 'Token inválido ou expirado' 
+    // Verificar se o token está presente no header
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      
+      return res.status(401).json({
+        success: false,
+        message: "Token não fornecido",
       });
     }
 
-    // Armazenar informações do usuário no objeto de requisição
-    req.userId = decoded.userId;
-    req.userEmail = decoded.email;
-    req.userRole = decoded.role;
+    // Extrair o token
+    const token = authHeader.split(" ")[1];
     
-    return next();
-  });
+
+    // Verificar o token
+    let decoded;
+    try {
+      decoded = jwt.verify(
+        token,
+        process.env.JWT_SECRET || "brisa_jwt_secret_key_2025"
+      );
+      
+    } catch (verifyError) {
+      
+      if (verifyError.name === "JsonWebTokenError") {
+        return res.status(401).json({ success: false, message: "Token inválido" });
+      }
+      if (verifyError.name === "TokenExpiredError") {
+        return res.status(401).json({ success: false, message: "Token expirado" });
+      }
+      // Outro erro de verificação
+      throw verifyError;
+    }
+
+    // Buscar o usuário no banco de dados
+    
+    const usuario = await Usuario.findByPk(decoded.userId);
+
+    if (!usuario) {
+      
+      return res.status(401).json({
+        success: false,
+        message: "Usuário não encontrado",
+      });
+    }
+    
+
+    // Adicionar informações do usuário ao objeto de requisição
+    req.userId = usuario.id;
+    req.userRole = usuario.tipo_usuario;
+
+    next();
+  } catch (error) {
+    
+    // Evitar enviar detalhes do erro interno para o cliente em produção
+    res.status(500).json({
+      success: false,
+      message: "Erro interno ao verificar autenticação",
+      // error: error.message // Opcional: incluir em dev, remover em prod
+    });
+  }
 };
 
 // Middleware para verificar se o usuário é admin
-const adminMiddleware = (req, res, next) => {
-  // Primeiro verifica se o usuário está autenticado
-  authMiddleware(req, res, () => {
-    // Depois verifica se o usuário é admin
-    if (req.userRole !== 'admin') {
-      return res.status(403).json({ 
-        success: false, 
-        message: 'Acesso restrito a administradores' 
-      });
+exports.adminMiddleware = async (req, res, next) => {
+  
+  try {
+    // Bypass comentado
+    // const bypassAuth = process.env.NODE_ENV !== "production";
+    // if (bypassAuth) { ... }
+
+    // Reutilizar a lógica do authMiddleware para verificar o token e obter o usuário
+    // Isso evita duplicação, mas requer que authMiddleware já tenha rodado ou que se repita a lógica aqui.
+    // Assumindo que authMiddleware já rodou e populou req.userId e req.userRole:
+    if (!req.userId || !req.userRole) {
+        return res.status(500).json({ success: false, message: "Erro interno de configuração de middleware." });
     }
-    
-    return next();
-  });
-};
 
-// Middleware para verificar se o usuário tem acesso a um recurso específico
-const resourceAccessMiddleware = (resourceType) => {
-  return async (req, res, next) => {
-    try {
-      // Primeiro verifica se o usuário está autenticado
-      authMiddleware(req, res, async () => {
-        // Se for admin, permite acesso direto
-        if (req.userRole === 'admin') {
-          return next();
-        }
-
-        // Verificar permissões específicas baseadas no tipo de recurso
-        switch (resourceType) {
-          case 'licitacao':
-            // Lógica para verificar acesso a licitações
-            // Por exemplo, verificar se o usuário pertence à empresa ou órgão relacionado
-            const licitacaoId = req.params.id;
-            // Implementar lógica de verificação aqui
-            break;
-          
-          case 'empresa':
-            // Lógica para verificar acesso a empresas
-            const empresaId = req.params.id;
-            // Implementar lógica de verificação aqui
-            break;
-          
-          // Adicionar outros tipos de recursos conforme necessário
-          
-          default:
-            // Se não houver regra específica, permitir acesso
-            return next();
-        }
-        
-        // Se chegou até aqui, permitir acesso
-        return next();
-      });
-    } catch (error) {
-      console.error('Erro ao verificar permissões:', error);
-      return res.status(500).json({
+    if (req.userRole !== "admin") {
+      return res.status(403).json({
         success: false,
-        message: 'Erro ao verificar permissões de acesso'
+        message: "Acesso negado. Apenas administradores podem acessar este recurso.",
       });
     }
-  };
+
+    next();
+
+  } catch (error) {
+    
+    res.status(500).json({
+      success: false,
+      message: "Erro ao verificar permissão de administrador",
+      // error: error.message // Opcional
+    });
+  }
 };
 
-module.exports = {
-  authMiddleware,
-  adminMiddleware,
-  resourceAccessMiddleware
-};

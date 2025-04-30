@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Licitações - Gestão de Licitações</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="app-page">
+    <!-- Sidebar de navegação -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Gestão de Licitações</h2>
+        </div>
+        <div class="sidebar-menu">
+            <ul>
+                <li>
+                    <a href="dashboard.html">
+                        <i class="icon dashboard-icon"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="active">
+                    <a href="licitacoes.html">
+                        <i class="icon licitacoes-icon"></i>
+                        <span>Licitações</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <i class="icon relatorios-icon"></i>
+                        <span>Relatórios</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="admin.html">
+                        <i class="icon admin-icon"></i>
+                        <span>Administração</span>
+                    </a>
+                </li>
+                <li class="sidebar-bottom">
+                    <a href="login.html">
+                        <i class="icon sair-icon"></i>
+                        <span>Sair</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Conteúdo principal -->
+    <div class="main-content">
+        <div class="page-header">
+            <h1>Licitações</h1>
+            <p>Gerencie todas as suas licitações</p>
+        </div>
+
+        <!-- Filtros de licitações -->
+        <div class="filter-container">
+            <div class="filter-group">
+                <label for="filtroOrdem">Ordenar por:</label>
+                <select id="filtroOrdem" class="filter-select">
+                    <option value="prazo">Próximo Prazo</option>
+                    <option value="antiga">Mais Antiga</option>
+                    <option value="nova">Mais Nova</option>
+                    <option value="alfabetica">Ordem Alfabética (Órgão)</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="filtroStatus">Status:</label>
+                <select id="filtroStatus" class="filter-select">
+                    <option value="todos">Todos</option>
+                    <option value="pendente">Pendente</option>
+                    <option value="andamento">Em Andamento</option>
+                    <option value="concluido">Concluído</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <input type="text" id="filtroBusca" placeholder="Buscar licitação..." class="filter-search">
+            </div>
+        </div>
+
+        <!-- Lista de licitações -->
+        <div class="licitacoes-list">
+            <div class="licitacoes-header">
+                <div class="licitacao-col orgao">Órgão</div>
+                <div class="licitacao-col prazo">Próxima Entrega</div>
+                <div class="licitacao-col local">Cidade/UF</div>
+                <div class="licitacao-col acoes">Ações</div>
+            </div>
+            
+            <!-- Exemplo de item de licitação -->
+            <div class="licitacao-item" onclick="window.location.href='licitacao-detalhes.html'">
+                <div class="licitacao-col orgao">Prefeitura Municipal de São Paulo</div>
+                <div class="licitacao-col prazo">15/05/2025</div>
+                <div class="licitacao-col local">São Paulo/SP</div>
+                <div class="licitacao-col acoes">
+                    <button class="btn-icon btn-view" title="Ver detalhes"></button>
+                    <button class="btn-icon btn-edit" title="Editar"></button>
+                </div>
+            </div>
+            
+            <!-- Exemplo de item de licitação -->
+            <div class="licitacao-item" onclick="window.location.href='licitacao-detalhes.html'">
+                <div class="licitacao-col orgao">Secretaria de Educação do Estado de Minas Gerais</div>
+                <div class="licitacao-col prazo">22/05/2025</div>
+                <div class="licitacao-col local">Belo Horizonte/MG</div>
+                <div class="licitacao-col acoes">
+                    <button class="btn-icon btn-view" title="Ver detalhes"></button>
+                    <button class="btn-icon btn-edit" title="Editar"></button>
+                </div>
+            </div>
+            
+            <!-- Exemplo de item de licitação -->
+            <div class="licitacao-item" onclick="window.location.href='licitacao-detalhes.html'">
+                <div class="licitacao-col orgao">Tribunal Regional Federal da 4ª Região</div>
+                <div class="licitacao-col prazo">30/05/2025</div>
+                <div class="licitacao-col local">Porto Alegre/RS</div>
+                <div class="licitacao-col acoes">
+                    <button class="btn-icon btn-view" title="Ver detalhes"></button>
+                    <button class="btn-icon btn-edit" title="Editar"></button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Paginação -->
+        <div class="pagination">
+            <button class="pagination-btn prev" disabled>&lt;</button>
+            <button class="pagination-btn active">1</button>
+            <button class="pagination-btn">2</button>
+            <button class="pagination-btn">3</button>
+            <button class="pagination-btn next">&gt;</button>
+        </div>
+    </div>
+
+    <!-- Botão flutuante para adicionar nova licitação -->
+    <div class="floating-button" id="addLicitacaoBtn">
+        <span>+</span>
+    </div>
+
+    <!-- Modal para adicionar nova licitação -->
+    <div class="modal" id="novaLicitacaoModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Nova Licitação</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="novaLicitacaoForm">
+                    <div class="form-group">
+                        <label for="nomeLicitacao">Nome da Licitação</label>
+                        <input type="text" id="nomeLicitacao" name="nomeLicitacao" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="numeroContrato">Número do Contrato</label>
+                        <input type="text" id="numeroContrato" name="numeroContrato" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group half">
+                            <label for="dataInicio">Data de Início</label>
+                            <input type="date" id="dataInicio" name="dataInicio" required>
+                        </div>
+                        <div class="form-group half">
+                            <label for="dataTermino">Data de Término</label>
+                            <input type="date" id="dataTermino" name="dataTermino" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="valor">Valor</label>
+                        <div class="input-with-prefix">
+                            <span class="prefix">R$</span>
+                            <input type="number" id="valor" name="valor" step="0.01" min="0" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="descricao">Descrição</label>
+                        <textarea id="descricao" name="descricao" rows="4"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="cancelarBtn">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Criar Licitação</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -26,7 +26,7 @@ exports.login = async (req, res) => {
     if (!usuario) {
       return res.status(401).json({ 
         success: false,
-        message: 'Credenciais inválidas  2' 
+        message: 'Credenciais inválidas' 
       });
     }
 
@@ -44,7 +44,7 @@ exports.login = async (req, res) => {
     if (!senhaCorreta) {
       return res.status(401).json({ 
         success: false,
-        message: 'Credenciais inválidas 1' 
+        message: 'Credenciais inválidas' 
       });
     }
     // Gerar token JWT
@@ -110,7 +110,7 @@ exports.validateToken = (req, res) => {
 // Registro de usuário (opcional, pode ser usado pelo admin)
 exports.register = async (req, res) => {
   try {
-    const { nome, email, senha, tipo_usuario } = req.body;
+    const { nome, email, senha, tipo_usuario, empresa_id } = req.body;
 
     // Validação básica
     if (!nome || !email || !senha) {
@@ -138,7 +138,8 @@ exports.register = async (req, res) => {
       email,
       senha_hash,
       tipo_usuario: tipo_usuario || 'usuario',
-      ativo: true
+      ativo: true,
+      empresa_id: empresa_id || null
     });
 
     // Retornar dados do usuário criado (sem a senha)

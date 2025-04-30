@@ -111,7 +111,8 @@ CREATE TABLE usuarios (
     email VARCHAR(255) UNIQUE NOT NULL,
     senha_hash TEXT NOT NULL,
     tipo_usuario VARCHAR(50), 
-    ativo BOOLEAN DEFAULT TRUE
+    ativo BOOLEAN DEFAULT TRUE,
+    empresa_id INTEGER NOT NULL REFERENCES empresas(id)
 );
 
 CREATE TABLE alertas (
