@@ -3,26 +3,27 @@ import Layout from '../components/Layout';
 import Filters from '../components/Filters';
 import LicitacaoItem from '../components/LicitacaoItem';
 import FAB from '../components/FAB';
-import { licitacoesService, empresasService } from '../services/api'; // Importar os serviços da API
-import { useNavigate } from 'react-router-dom'; // Importar useNavigate
+import NovaLicitacaoModal from '../components/NovaLicitacaoModal'; // Importar o modal
+import { licitacoesService, empresasService, orgaosService } from '../services/api'; // Importar todos os serviços necessários
+import { useNavigate } from 'react-router-dom';
 
 function LicitacoesList() {
-    const navigate = useNavigate(); // Hook para navegação
+    const navigate = useNavigate();
     const [licitacoes, setLicitacoes] = useState([]);
     const [empresas, setEmpresas] = useState([]);
+    const [orgaos, setOrgaos] = useState([]); // Estado para órgãos
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [filters, setFilters] = useState({}); // Estado para filtros (incluindo ordenação)
+    const [filters, setFilters] = useState({});
+    const [isModalOpen, setIsModalOpen] = useState(false); // Estado para visibilidade do modal
 
     // Função para buscar licitações da API
     const fetchLicitacoes = async () => {
         setLoading(true);
         setError(null);
         try {
-            // Passar os filtros atuais para o serviço
             const response = await licitacoesService.getLicitacoes(filters);
             if (response.success) {
-                console.log("LicitacoesList: Dados recebidos:", response.data); // Log para verificar dados
                 setLicitacoes(response.data);
             } else {
                 setError(response.message || 'Erro ao buscar licitações');
@@ -38,64 +39,88 @@ function LicitacoesList() {
     const fetchEmpresas = async () => {
         try {
             const response = await empresasService.getEmpresas();
-            // Ajuste: A API de empresas pode retornar { success: true, data: [...] }
             if (response && response.success && Array.isArray(response.data)) {
                 setEmpresas(response.data);
             } else if (response && Array.isArray(response)) {
-                 // Fallback se a API retornar diretamente o array
                  setEmpresas(response);
             }
         } catch (err) {
             console.error('Erro ao buscar empresas:', err);
+            // Não definir erro geral aqui para não impedir a exibição das licitações
         }
     };
 
-    // Buscar empresas ao montar o componente
+    // Função para buscar órgãos da API
+    const fetchOrgaos = async () => {
+        try {
+            const response = await orgaosService.getOrgaos();
+            if (response && response.success && Array.isArray(response.data)) {
+                setOrgaos(response.data);
+            } else {
+                 console.error('Resposta inesperada ao buscar órgãos:', response);
+            }
+        } catch (err) {
+            console.error('Erro ao buscar órgãos:', err);
+            // Não definir erro geral aqui
+        }
+    };
+
+    // Buscar dados iniciais (empresas, órgãos, licitações)
     useEffect(() => {
         fetchEmpresas();
-    }, []);
+        fetchOrgaos();
+        fetchLicitacoes(); // fetchLicitacoes já é chamado pelo useEffect de filters
+    }, []); // Executar apenas na montagem inicial
 
-    // Buscar licitações ao montar o componente e quando os filtros mudarem
+    // Re-buscar licitações quando os filtros mudarem
     useEffect(() => {
         fetchLicitacoes();
     }, [filters]);
 
-    // Handler para mudanças nos filtros (incluindo ordenação)
+    // Handlers para filtros e ordenação
     const handleFilterChange = (newFilters) => {
         setFilters(prevFilters => ({ ...prevFilters, ...newFilters }));
     };
-
-    // Handler para mudança na ordenação
     const handleSortChange = (event) => {
         handleFilterChange({ sortBy: event.target.value });
     };
 
+    // Abrir o modal
     const handleAddClick = () => {
-        console.log('Adicionar Nova Licitação Clicado!');
-        // Lógica para abrir modal ou navegar para tela de adição
-        // Ex: navigate('/licitacoes/nova');
+        setIsModalOpen(true);
     };
 
-    const handleItemClick = (id) => {
-        console.error(`--- LicitacoesList handleItemClick START para ID: ${id} ---`); // LOG DIAGNÓSTICO
-        const token = localStorage.getItem("token");
-        console.error(`--- LicitacoesList handleItemClick: Token no localStorage ANTES de navegar: ${token ? "Existe" : "NÃO Existe"} ---`); // LOG DIAGNÓSTICO
-        if (!token) {
-            console.error("--- LicitacoesList handleItemClick: Tentando navegar sem token! ABORTANDO NAVEGAÇÃO ---"); // LOG DIAGNÓSTICO
-            // Considerar redirecionar para login aqui se isso acontecer
-            // navigate("/login");
-            return;
+    // Fechar o modal
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+    };
+
+    // Submeter o formulário do modal
+    const handleModalSubmit = async (formData) => {
+        try {
+            const response = await licitacoesService.criarLicitacao(formData); // Enviar FormData
+            if (response.success) {
+                alert('Licitação criada com sucesso!');
+                handleCloseModal();
+                fetchLicitacoes(); // Atualizar a lista após criar
+            } else {
+                alert(`Erro ao criar licitação: ${response.message}`);
+            }
+        } catch (error) {
+            console.error("Erro ao submeter modal:", error);
+            alert(`Erro ao criar licitação: ${error.response?.data?.message || error.message}`);
         }
-        console.error(`--- LicitacoesList handleItemClick: CHAMANDO navigate(\"/licitacoes/${id}\") AGORA ---`); // LOG DIAGNÓSTICO
-        navigate(`/licitacoes/${id}`); // Navega para a rota de detalhes
-        console.error(`--- LicitacoesList handleItemClick: navigate() chamado. ---`); // LOG DIAGNÓSTICO
+    };
+
+    // Navegar para detalhes
+    const handleItemClick = (id) => {
+        navigate(`/licitacoes/${id}`);
     };
 
     return (
         <Layout>
             <h1>Licitações</h1>
 
-            {/* Passar a função de atualização de filtros e a lista de empresas para o componente Filters */}
             <Filters
                 onSortChange={handleSortChange}
                 onFilterChange={handleFilterChange}
@@ -112,15 +137,12 @@ function LicitacoesList() {
                             <LicitacaoItem
                                 key={lic.id}
                                 id={lic.id}
-                                // CORRIGIDO: Usar 'orgao' e 'empresa' (minúsculo)
-                                orgao={lic.orgao?.nome || 'Órgão não informado'}
-                                // Assumindo que cidade/UF não vêm do órgão, ajustar se necessário
-                                cidadeUF={`Cidade não informada / UF`}
-                                // Usar data_encerramento se disponível, senão data_abertura
-                                proximaEntrega={lic.data_encerramento ? new Date(lic.data_encerramento).toLocaleDateString() : (lic.data_abertura ? new Date(lic.data_abertura).toLocaleDateString() : 'Data não informada')}
-                                status={lic.status || 'Status não informado'}
-                                empresa={lic.empresa?.nome_fantasia || 'Empresa não informada'}
-                                // ADICIONADO: Passar o handler de clique
+                                orgao={lic.orgao?.nome || 'N/A'}
+                                // Exemplo: Adicionar cidade/UF do órgão se disponível
+                                cidadeUF={`${lic.orgao?.cidade || 'N/A'} / ${lic.orgao?.estado || 'N/A'}`}
+                                proximaEntrega={lic.data_encerramento ? new Date(lic.data_encerramento).toLocaleDateString() : (lic.data_abertura ? new Date(lic.data_abertura).toLocaleDateString() : 'N/A')}
+                                status={lic.status || 'N/A'}
+                                empresa={lic.empresa?.nome_fantasia || 'N/A'}
                                 onClick={() => handleItemClick(lic.id)}
                             />
                         ))
@@ -130,7 +152,17 @@ function LicitacoesList() {
                 </div>
             )}
 
+            {/* Botão para adicionar nova licitação */}
             <FAB title="Adicionar Nova Licitação" onClick={handleAddClick} />
+
+            {/* Modal para adicionar nova licitação */}
+            <NovaLicitacaoModal
+                isOpen={isModalOpen}
+                onRequestClose={handleCloseModal}
+                onSubmit={handleModalSubmit}
+                orgaos={orgaos} // Passar a lista de órgãos
+                empresas={empresas} // Passar a lista de empresas
+            />
         </Layout>
     );
 }

@@ -31,6 +31,9 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(express.json());
 
+// Servir arquivos estáticos da pasta uploads
+app.use("/uploads", express.static("uploads"));
+
 // Teste conexão DB
 sequelize.authenticate()
   .then(() => console.log('Banco conectado!'))

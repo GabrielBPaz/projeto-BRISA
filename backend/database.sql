@@ -46,6 +46,7 @@ CREATE TABLE licitacoes (
     objeto TEXT,
     valor_total DECIMAL(18,2),
     data_abertura DATE,
+    data_ecerramento DATE,
     status VARCHAR(50),       
     edital_arquivo TEXT       
 );

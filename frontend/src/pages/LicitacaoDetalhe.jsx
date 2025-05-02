@@ -12,6 +12,9 @@ import Modal from 'react-modal';
 // Configurar o elemento raiz para o react-modal
 Modal.setAppElement('#root');
 
+// URL base da API (Hardcoded para garantir que funcione)
+const API_BASE_URL = 'http://localhost:3001';
+
 function LicitacaoDetalhe() {
     const { id } = useParams();
     const [licitacao, setLicitacao] = useState(null);
@@ -198,10 +201,10 @@ function LicitacaoDetalhe() {
                             <div className="empenhos-list">
                                 {licitacao.empenhos.map(empenho => (
                                     <div key={empenho.id} className="empenho-item">
-                                        <p><strong>Número:</strong> {empenho.numero}</p>
-                                        <p><strong>Data:</strong> {new Date(empenho.data).toLocaleDateString()}</p>
-                                        <p><strong>Valor:</strong> R$ {parseFloat(empenho.valor).toFixed(2).replace('.', ',')}</p>
-                                        <p><strong>Descrição:</strong> {empenho.descricao}</p>
+                                        <p><strong>Número:</strong> {empenho.numero_empenho}</p>
+                                        <p><strong>Data:</strong> {empenho.data_empenho ? new Date(empenho.data_empenho).toLocaleDateString() : 'Data inválida'}</p>
+                                        <p><strong>Valor:</strong> R$ {empenho.valor_empenhado ? parseFloat(empenho.valor_empenhado).toFixed(2).replace('.', ',') : '0,00'}</p>
+                                        {/* Descrição removida pois não existe no backend */}
                                     </div>
                                 ))}
                             </div>
@@ -216,14 +219,14 @@ function LicitacaoDetalhe() {
                 {activeTab === 'documentos' && (
                     <div>
                         <h2>Documentos</h2>
-                        {licitacao.Documentos && licitacao.Documentos.length > 0 ? (
+                        {licitacao.documentos && licitacao.documentos.length > 0 ? (
                             <div className="documentos-list">
-                                {licitacao.Documentos.map(doc => (
+                                {licitacao.documentos.map(doc => (
                                     <div key={doc.id} className="documento-item">
                                         <p><strong>Nome:</strong> {doc.nome}</p>
                                         <p><strong>Tipo:</strong> {doc.tipo}</p>
                                         <p><strong>Data de Upload:</strong> {new Date(doc.data_upload).toLocaleDateString()}</p>
-                                        {/* Ajustar a URL conforme a configuração do backend para servir arquivos estáticos */}
+                                        {/* Link absoluto corrigido para visualização (hardcoded) */}
                                         <a href={`http://localhost:3001/${doc.caminho_arquivo}`} target="_blank" rel="noopener noreferrer">Visualizar</a>
                                     </div>
                                 ))}
@@ -239,9 +242,9 @@ function LicitacaoDetalhe() {
                 {activeTab === 'comentarios' && (
                     <div>
                         <h2>Comentários</h2>
-                        {licitacao.Comentarios && licitacao.Comentarios.length > 0 ? (
+                        {licitacao.comentarios && licitacao.comentarios.length > 0 ? (
                             <div className="comentarios-list">
-                                {licitacao.Comentarios.map(comentario => (
+                                {licitacao.comentarios.map(comentario => (
                                     <div key={comentario.id} className="comentario-item">
                                         <div className="comentario-header">
                                             <span className="comentario-autor">{comentario.Usuario?.nome || 'Usuário'}</span>
@@ -326,3 +329,4 @@ function LicitacaoDetalhe() {
 }
 
 export default LicitacaoDetalhe;
+

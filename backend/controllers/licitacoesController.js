@@ -1,364 +1,321 @@
 const { Licitacao, Empresa, OrgaoPublico, Empenho, NotaFiscal, Entrega, Usuario, Documento, Comentario, ItemEmpenho, AtaRegistro, Pagamento } = require("../models");
 const { Op } = require("sequelize");
+const fs = require("fs").promises; // Usar promises para fs
+const path = require("path");
 
-// Obter todas as licitações com filtro por empresa (se o usuário for de uma empresa)
+// Criar uma nova licitação com upload de edital obrigatório
+exports.criarLicitacao = async (req, res) => {
+  let novaLicitacao;
+  let editalPath;
+
+  try {
+    // Verificar se o arquivo do edital foi enviado
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "O upload do arquivo do edital (PDF) é obrigatório.",
+      });
+    }
+    editalPath = req.file.path; // Guardar o caminho temporário
+
+    // Extrair dados do corpo da requisição
+    const { numero_licitacao, orgao_id, empresa_id, modalidade, objeto, valor_total, data_abertura, data_encerramento, status } = req.body;
+    const userId = req.userId;
+
+    // Validação básica dos campos de texto (pode ser expandida)
+    if (!numero_licitacao || !orgao_id || !modalidade || !objeto || !data_abertura) {
+        // Se a validação falhar, remover o arquivo temporário
+        await fs.unlink(editalPath);
+        return res.status(400).json({ success: false, message: "Campos obrigatórios não fornecidos." });
+    }
+
+    // Criar a licitação no banco de dados
+    novaLicitacao = await Licitacao.create({
+      numero_licitacao,
+      orgao_id: parseInt(orgao_id),
+      empresa_id: empresa_id ? parseInt(empresa_id) : null,
+      modalidade,
+      objeto,
+      valor_total: valor_total ? parseFloat(valor_total) : null,
+      data_abertura,
+      data_encerramento: data_encerramento || null,
+      status: status || "Em Aberto",
+      // edital_arquivo: editalPath // Não salvar o caminho temporário aqui, faremos no Documento
+    });
+
+    // Renomear o arquivo do edital para incluir o ID da licitação
+    const novoNomeArquivo = `${Date.now()}-${novaLicitacao.id}-${req.file.originalname.replace(/\s+/g, "_")}`;
+    const novoPath = path.join(path.dirname(editalPath), novoNomeArquivo);
+    await fs.rename(editalPath, novoPath);
+
+    // Criar o registro do documento (edital) associado à licitação
+    await Documento.create({
+      nome: `Edital - ${req.file.originalname}`, // Nome descritivo
+      tipo: "Edital", // Tipo específico para identificar
+      descricao: "Edital principal da licitação",
+      caminho_arquivo: novoPath, // Usar o novo caminho após renomear
+      tamanho: req.file.size,
+      tipo_arquivo: req.file.mimetype,
+      data_upload: new Date(),
+      licitacao_id: novaLicitacao.id,
+      usuario_id: userId,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Licitação e edital criados com sucesso!",
+      data: novaLicitacao,
+    });
+
+  } catch (error) {
+    console.error("Erro ao criar licitação:", error);
+
+    // Se ocorreu erro após criar a licitação, tentar deletá-la (rollback manual)
+    if (novaLicitacao && novaLicitacao.id) {
+      try {
+        await Licitacao.destroy({ where: { id: novaLicitacao.id } });
+      } catch (deleteError) {
+        console.error("Erro ao tentar deletar licitação após falha:", deleteError);
+      }
+    }
+
+    // Se ocorreu erro (em qualquer ponto), tentar deletar o arquivo de upload
+    if (editalPath) {
+      try {
+        await fs.unlink(editalPath);
+      } catch (unlinkError) {
+        // Se o arquivo já foi renomeado, tentar deletar pelo novo nome (melhoria futura)
+        console.error("Erro ao tentar deletar arquivo de upload após falha:", unlinkError);
+      }
+    }
+
+    res.status(500).json({
+      success: false,
+      message: "Erro interno ao criar licitação",
+      error: error.message,
+    });
+  }
+};
+
+// Obter todas as licitações
 exports.getLicitacoes = async (req, res) => {
   try {
     const { empresaId, status, dataInicio, dataFim } = req.query;
     const userRole = req.userRole;
     const userId = req.userId;
-
-    // Construir filtros
     const where = {};
 
-    // Filtro por empresa baseado na associação do usuário
-    const usuario = await Usuario.findByPk(userId, {
-      attributes: ["id", "empresa_id"], // Buscar apenas ID e empresa_id
-    });
+    const usuario = await Usuario.findByPk(userId, { attributes: ["id", "empresa_id"] });
 
     if (usuario && usuario.empresa_id) {
-      // Se o usuário está associado a uma empresa, filtrar por ela
       where.empresa_id = usuario.empresa_id;
     } else if (userRole === "admin" && empresaId) {
-      // Se for admin e especificou empresa no query param, usar o query param
       where.empresa_id = empresaId;
     } else if (userRole !== "admin") {
-      // Se não for admin e não estiver associado a uma empresa, não deve ver nada
-      return res.json({ success: true, data: [] }); // Retorna lista vazia
-    }
-    // Se for admin e não especificou empresaId, não aplica filtro de empresa (vê tudo)
-
-    // Filtro por status
-    if (status) {
-      where.status = status;
+      return res.json({ success: true, data: [] });
     }
 
-    // Filtro por data
-    if (dataInicio && dataFim) {
-      where.data_abertura = {
-        [Op.between]: [new Date(dataInicio), new Date(dataFim)],
-      };
-    } else if (dataInicio) {
-      where.data_abertura = {
-        [Op.gte]: new Date(dataInicio),
-      };
-    } else if (dataFim) {
-      where.data_abertura = {
-        [Op.lte]: new Date(dataFim),
-      };
-    }
+    if (status) where.status = status;
+    if (dataInicio && dataFim) where.data_abertura = { [Op.between]: [new Date(dataInicio), new Date(dataFim)] };
+    else if (dataInicio) where.data_abertura = { [Op.gte]: new Date(dataInicio) };
+    else if (dataFim) where.data_abertura = { [Op.lte]: new Date(dataFim) };
 
-    // Buscar licitações com filtros
     const licitacoes = await Licitacao.findAll({
       where,
-      // Garantir que os campos essenciais para a lista estão incluídos
       include: [
-        { model: Empresa, as: "empresa", attributes: ["id", "nome_fantasia"] }, // Apenas nome fantasia para a lista
-        { model: OrgaoPublico, as: "orgao", attributes: ["id", "nome"] }, // Apenas nome para a lista
+        { model: Empresa, as: "empresa", attributes: ["id", "nome_fantasia"] },
+        { model: OrgaoPublico, as: "orgao", attributes: ["id", "nome"] },
       ],
       order: [["data_abertura", "DESC"]],
-      // attributes: ["id", "numero_licitacao", "objeto", "status", "data_abertura", "data_encerramento"], // Descomentar se quiser limitar campos da Licitacao
     });
 
-    // *** ADICIONADO LOG ***
-
-    res.json({
-      success: true,
-      data: licitacoes,
-    });
+    res.json({ success: true, data: licitacoes });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Erro ao buscar licitações",
-      error: error.message,
-    });
+    res.status(500).json({ success: false, message: "Erro ao buscar licitações", error: error.message });
   }
 };
 
-// Obter detalhes de uma licitação específica
+// Obter detalhes de uma licitação por ID
 exports.getLicitacaoById = async (req, res) => {
   try {
     const { id } = req.params;
-    const userRole = req.userRole;
-    const userId = req.userId;
-    // *** ADICIONADO LOG ***
-
     const licitacao = await Licitacao.findByPk(id, {
       include: [
-        { model: Empresa, as: "empresa", attributes: ["id", "nome_fantasia", "razao_social", "cnpj"], required: false }, // Alias já estava correto
-        { model: OrgaoPublico, as: "orgao", attributes: ["id", "nome", "cnpj"], required: false },       // Alias já estava correto
-        { model: Empenho, as: "empenhos", required: false, include: [{ model: ItemEmpenho, as: "itens", required: false }] }, // Adicionado alias 'empenhos' e 'itens'
-        { model: NotaFiscal, as: "notasFiscais", required: false, include: [{ model: Pagamento, as: "pagamentos", required: false }] }, // Adicionado alias 'notasFiscais' e 'pagamentos'
-        { model: Entrega, as: "entregas", required: false }, // Adicionado alias 'entregas'
-        { model: AtaRegistro, as: "atas", required: false }, // Adicionado alias 'atas'
-        // { model: Documento, required: false }, // Removido temporariamente - Associação não definida no index.js
-        // { model: Comentario, required: false, include: [{ model: Usuario, attributes: ["nome"], required: false }] }, // Removido temporariamente - Associação não definida no index.js
+        { model: OrgaoPublico, as: "orgao", required: false },
+        { model: Empresa, as: "empresa", required: false },
+        { model: Empenho, as: "empenhos", required: false, include: [{ model: ItemEmpenho, as: "itens", required: false }] },
+        { model: NotaFiscal, as: "notasFiscais", required: false, include: [{ model: Pagamento, as: "pagamentos", required: false }] },
+        // Ajuste: Incluir Entrega com associação a Empenho, se necessário
+        { model: Entrega, as: "entregas_licitacao", required: false }, // Mantendo relação com licitação por enquanto
+        { model: AtaRegistro, as: "atas", required: false },
       ],
     });
 
     if (!licitacao) {
-      // *** ADICIONADO LOG ***
-      return res.status(404).json({
-        success: false,
-        message: "Licitação não encontrada",
-      });
-    }
-    // *** ADICIONADO LOG ***
-
-    // Verificar permissão baseado na associação do usuário
-    if (userRole !== "admin") {
-      // *** ADICIONADO LOG ***
-      const usuario = await Usuario.findByPk(userId, { attributes: ["empresa_id"] });
-
-      if (!usuario) {
-          // *** ADICIONADO LOG ***
-          return res.status(403).json({
-            success: false,
-            message: "Usuário não encontrado para verificação de permissão",
-          });
-      }
-
-      // *** ADICIONADO LOG ***
-
-      if (usuario.empresa_id !== licitacao.empresa_id) {
-        // *** ADICIONADO LOG ***
-        return res.status(403).json({
-          success: false,
-          message: "Você não tem permissão para acessar esta licitação",
-        });
-      } else {
-        // *** ADICIONADO LOG ***
-      }
-    } else {
-      // *** ADICIONADO LOG ***
+      return res.status(404).json({ success: false, message: "Licitação não encontrada" });
     }
 
-    // --- LOG DIAGNÓSTICO: Verificar dados retornados pelo Sequelize ---
-    console.log("--- getLicitacaoById: Dados retornados pelo findByPk ---", JSON.stringify(licitacao, null, 2));
-    // --- FIM LOG DIAGNÓSTICO ---
-
-    res.json({
-      success: true,
-      data: licitacao,
+    const documentos = await Documento.findAll({
+      where: { licitacao_id: id },
+      include: [{ model: Usuario, as: "usuario", attributes: ["id", "nome"] }],
+      order: [["data_upload", "DESC"]],
     });
+
+    const comentarios = await Comentario.findAll({
+      where: { licitacao_id: id },
+      include: [{ model: Usuario, as: "usuario", attributes: ["id", "nome"] }],
+      order: [["data", "ASC"]],
+    });
+
+    const licitacaoData = licitacao.get({ plain: true });
+    licitacaoData.documentos = documentos;
+    licitacaoData.comentarios = comentarios;
+
+    res.status(200).json({ success: true, data: licitacaoData });
+
   } catch (error) {
-    console.error("--- ERROR in getLicitacaoById ---", error); // LOG DETALHADO NO SERVIDOR
-    res.status(500).json({
-      success: false,
-      message: "Erro interno ao buscar detalhes da licitação. Verifique os logs do servidor.",
-      // error: error.message // Não enviar detalhes do erro para o cliente
-    });
+    console.error("Erro em getLicitacaoById:", error);
+    res.status(500).json({ success: false, message: "Erro ao buscar detalhes da licitação", error: error.message });
   }
 };
 
 // Obter estatísticas para o dashboard
 exports.getDashboardStats = async (req, res) => {
-  // ... (código existente, já corrigido e com logs)
   try {
     const userRole = req.userRole;
     const userId = req.userId;
-
     let empresaId = null;
-    const usuario = await Usuario.findByPk(userId, {
-      attributes: ["id", "empresa_id"],
-    });
+    const usuario = await Usuario.findByPk(userId, { attributes: ["id", "empresa_id"] });
 
     if (usuario && usuario.empresa_id) {
       empresaId = usuario.empresa_id;
     } else if (userRole !== "admin") {
-      const payload = {
-        success: true,
-        data: {
-          stats: { ativas: 0, proximosPrazos: 0, emAtraso: 0, concluidas: 0 },
-          licitacoesAndamento: [],
-        },
-      };
-      return res.json(payload);
+      return res.json({ success: true, data: { stats: { ativas: 0, proximosPrazos: 0, emAtraso: 0, concluidas: 0 }, licitacoesAndamento: [] } });
     }
 
     const whereBase = empresaId ? { empresa_id: empresaId } : {};
-
-    const ativas = await Licitacao.count({
-      where: { ...whereBase, status: "ativa" },
-    });
-
     const hoje = new Date();
     const dataLimite = new Date();
     dataLimite.setDate(hoje.getDate() + 7);
-    const proximosPrazos = await Licitacao.count({
-      where: {
-        ...whereBase,
-        status: { [Op.notIn]: ["concluida", "cancelada"] },
-        data_encerramento: { [Op.gte]: hoje, [Op.lte]: dataLimite, [Op.ne]: null },
-      },
-    });
 
-    const emAtraso = await Licitacao.count({
-      where: {
-        ...whereBase,
-        status: { [Op.notIn]: ["concluida", "cancelada"] },
-        data_encerramento: { [Op.lt]: hoje, [Op.ne]: null },
-      },
-    });
+    const [ativas, proximosPrazos, emAtraso, concluidas, licitacoesAndamento] = await Promise.all([
+      Licitacao.count({ where: { ...whereBase, status: "ativa" } }),
+      Licitacao.count({ where: { ...whereBase, status: { [Op.notIn]: ["concluida", "cancelada"] }, data_encerramento: { [Op.gte]: hoje, [Op.lte]: dataLimite, [Op.ne]: null } } }),
+      Licitacao.count({ where: { ...whereBase, status: { [Op.notIn]: ["concluida", "cancelada"] }, data_encerramento: { [Op.lt]: hoje, [Op.ne]: null } } }),
+      Licitacao.count({ where: { ...whereBase, status: "concluida" } }),
+      Licitacao.findAll({
+        where: { ...whereBase, status: { [Op.in]: ["ativa", "em_andamento"] } },
+        include: [
+          { model: Empresa, as: "empresa", attributes: ["nome_fantasia"] },
+          { model: OrgaoPublico, as: "orgao", attributes: ["nome"] },
+        ],
+        limit: 5,
+        order: [["data_encerramento", "ASC"]],
+      })
+    ]);
 
-    const concluidas = await Licitacao.count({
-      where: { ...whereBase, status: "concluida" },
-    });
-
-    const licitacoesAndamento = await Licitacao.findAll({
-      where: {
-        ...whereBase,
-        status: { [Op.in]: ["ativa", "em_andamento"] },
-      },
-      include: [
-        { model: Empresa, as: "empresa", attributes: ["nome_fantasia"] },
-        { model: OrgaoPublico, as: "orgao", attributes: ["nome"] },
-      ],
-      limit: 5,
-      order: [["data_encerramento", "ASC"]],
-    });
-
-    const payload = {
-      success: true,
-      data: {
-        stats: { ativas, proximosPrazos, emAtraso, concluidas },
-        licitacoesAndamento,
-      },
-    };
-
-    res.json(payload);
+    res.json({ success: true, data: { stats: { ativas, proximosPrazos, emAtraso, concluidas }, licitacoesAndamento } });
 
   } catch (error) {
-    if (error.message && error.message.includes("coluna") && error.message.includes("não existe")) {
-        return res.status(500).json({
-            success: false,
-            message: "Erro ao buscar estatísticas: Verifique se a coluna 'data_encerramento' foi adicionada corretamente ao banco de dados.",
-            error: error.message,
-        });
-    }
-    res.status(500).json({
-      success: false,
-      message: "Erro ao buscar estatísticas do dashboard",
-      error: error.message,
-    });
+    res.status(500).json({ success: false, message: "Erro ao buscar estatísticas", error: error.message });
   }
 };
 
-// Adicionar método para atualizar prazos de uma licitação
+// Atualizar prazos de uma licitação
 exports.atualizarPrazos = async (req, res) => {
-  // ... (código existente)
   try {
     const { id } = req.params;
     const { data_abertura, data_encerramento, proxima_entrega, prazo_vigencia, observacoes } = req.body;
     const licitacao = await Licitacao.findByPk(id);
     if (!licitacao) {
-      return res.status(404).json({
-        success: false,
-        message: "Licitação não encontrada",
-      });
+      return res.status(404).json({ success: false, message: "Licitação não encontrada" });
     }
-    // Adicionar verificação de permissão aqui também, se necessário
     await licitacao.update({
       data_abertura: data_abertura || licitacao.data_abertura,
       data_encerramento: data_encerramento || licitacao.data_encerramento,
-      proxima_entrega: proxima_entrega || licitacao.proxima_entrega,
-      prazo_vigencia: prazo_vigencia || licitacao.prazo_vigencia,
-      observacoes: observacoes || licitacao.observacoes,
+      // Adicionar outros campos de prazo se existirem no modelo
     });
-    res.json({
-      success: true,
-      message: "Prazos atualizados com sucesso",
-      data: licitacao,
-    });
+    res.json({ success: true, message: "Prazos atualizados", data: licitacao });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Erro ao atualizar prazos da licitação",
-      error: error.message,
-    });
+    res.status(500).json({ success: false, message: "Erro ao atualizar prazos", error: error.message });
   }
 };
 
-
-// Adicionar método para anexar documentos a uma licitação
+// Anexar documentos a uma licitação existente
 exports.anexarDocumento = async (req, res) => {
-  // ... (código existente)
+  let filePath;
   try {
     const { id } = req.params;
+    filePath = req.file ? req.file.path : null;
+
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "Nenhum arquivo foi enviado" });
+    }
+
     const licitacao = await Licitacao.findByPk(id);
     if (!licitacao) {
-      return res.status(404).json({
-        success: false,
-        message: "Licitação não encontrada",
-      });
+      await fs.unlink(filePath); // Remover arquivo órfão
+      return res.status(404).json({ success: false, message: "Licitação não encontrada" });
     }
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        message: "Nenhum arquivo foi enviado",
-      });
-    }
+
+    // Renomear arquivo para incluir ID da licitação (se não foi feito no storage)
+    // (Assumindo que o storage ainda usa req.params.id)
+    // const novoNomeArquivo = `${Date.now()}-${id}-${req.file.originalname.replace(/\s+/g, "_")}`;
+    // const novoPath = path.join(path.dirname(filePath), novoNomeArquivo);
+    // await fs.rename(filePath, novoPath);
+    // filePath = novoPath; // Atualizar path
+
     const documento = await Documento.create({
-      nome: req.body.nome,
-      tipo: req.body.tipo,
+      nome: req.body.nome || req.file.originalname,
+      tipo: req.body.tipo || "Outro", // Default tipo
       descricao: req.body.descricao || "",
-      caminho_arquivo: req.file.path,
+      caminho_arquivo: filePath, // Usar path (potencialmente renomeado)
       tamanho: req.file.size,
       tipo_arquivo: req.file.mimetype,
       data_upload: new Date(),
       licitacao_id: id,
       usuario_id: req.userId,
     });
-    res.status(201).json({
-      success: true,
-      message: "Documento anexado com sucesso",
-      data: documento,
-    });
+
+    res.status(201).json({ success: true, message: "Documento anexado com sucesso!", data: documento });
+
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Erro ao anexar documento",
-      error: error.message,
-    });
+    console.error("Erro ao anexar documento:", error);
+    if (filePath) {
+      try { await fs.unlink(filePath); } catch (e) { console.error("Erro ao remover arquivo após erro:", e); }
+    }
+    res.status(500).json({ success: false, message: "Erro ao anexar documento", error: error.message });
   }
 };
 
-// Adicionar método para adicionar comentários a uma licitação
+// Adicionar comentários a uma licitação
 exports.adicionarComentario = async (req, res) => {
-  // ... (código existente)
   try {
     const { id } = req.params;
     const { texto } = req.body;
     const licitacao = await Licitacao.findByPk(id);
     if (!licitacao) {
-      return res.status(404).json({
-        success: false,
-        message: "Licitação não encontrada",
-      });
+      return res.status(404).json({ success: false, message: "Licitação não encontrada" });
     }
     if (!texto || texto.trim() === "") {
-      return res.status(400).json({
-        success: false,
-        message: "O texto do comentário é obrigatório",
-      });
+      return res.status(400).json({ success: false, message: "O texto do comentário é obrigatório" });
     }
+
     const comentario = await Comentario.create({
       texto,
-      data: new Date(),
       licitacao_id: id,
       usuario_id: req.userId,
     });
-    res.status(201).json({
-      success: true,
-      message: "Comentário adicionado com sucesso",
-      data: comentario,
+
+    const comentarioComUsuario = await Comentario.findByPk(comentario.id, {
+      include: [{ model: Usuario, as: "usuario", attributes: ["id", "nome"] }]
     });
+
+    res.status(201).json({ success: true, message: "Comentário adicionado!", data: comentarioComUsuario });
+
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Erro ao adicionar comentário",
-      error: error.message,
-    });
+    console.error("Erro ao adicionar comentário:", error);
+    res.status(500).json({ success: false, message: "Erro ao adicionar comentário", error: error.message });
   }
 };
 
