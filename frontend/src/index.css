@@ -2,11 +2,11 @@
   
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body:not(.login-page) {
+body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background-color: #f4f7fa; /* Fundo cinza claro */
   color: #333;
-  /* display: flex; // Removido para evitar conflitos globais */
+  /* display: flex; // Removido para não interferir com centralização de containers filhos */
   min-height: 100vh; /* Garante que o body ocupe toda a altura */
 }
 
@@ -119,41 +119,26 @@ button {
   justify-content: center;
   align-items: center;
   width: 100%;
-  background-c/* --- Tela de Login --- */
-body.login-page {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background-color: #f8f9fa; /* Fundo ligeiramente cinza */
-}
-
-.login-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  min-height: 100vh; /* Garante que o container ocupe a tela toda */
+  min-height: 100vh; /* Garante altura total da tela */
+  background-color: #f4f7fa;
 }
 
 .login-box {
   background-color: #ffffff;
-  padding: 40px 30px;
+  padding: 40px 50px;
   border-radius: 8px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  text-align: center;
   width: 100%;
   max-width: 400px;
-  text-align: center;
-  /* Removido position, top, left, transform para usar flexbox do container */
 }
 
-.login-box h2 {
-  margin-bottom: 25px;
-  color: #333;
-  font-weight: 600;
+.login-box h1 {
+  color: #2c3e50;
+  margin-bottom: 30px;
 }
 
-.login-box .form-group {
+.login-box .input-group {
   margin-bottom: 20px;
   text-align: left;
 }
@@ -161,30 +146,36 @@ body.login-page {
 .login-box label {
   display: block;
   margin-bottom: 8px;
-  font-weight: 500;
+  font-weight: 600;
   color: #555;
 }
 
-.login-box input {
+.login-box input[type="text"],
+.login-box input[type="email"],
+.login-box input[type="password"] {
   width: 100%;
   padding: 12px 15px;
   border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 16px;
+  border-radius: 5px;
+  font-size: 1em;
+}
+
+.login-box input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
 }
 
 .login-box button {
   width: 100%;
-  padding: 12px 20px;
+  padding: 12px;
   background-color: #007bff;
   color: white;
   border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 16px;
+  border-radius: 5px;
+  font-size: 1.1em;
   font-weight: 600;
-  transition: background-color 0.3s;
-  margin-top: 10px; /* Espaço antes do botão */
+  transition: background-color 0.2s ease;
 }
 
 .login-box button:hover {
@@ -192,14 +183,14 @@ body.login-page {
 }
 
 /* --- Dashboard: Painel de Controle (Cards) --- */
-.dashboard-content .stats-container {
-  display: grid; /* Removido !important */
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* Removido !important */
+.stats-container {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 4 colunas fixas */
   gap: 25px;
   margin-bottom: 40px;
 }
 
-.dashboard-content .stat-card {
+.stat-card {
   background-color: #ffffff;
   padding: 20px;
   border-radius: 8px;
@@ -207,82 +198,29 @@ body.login-page {
   border-left: 4px solid #007bff; /* Borda azul à esquerda */
 }
 
-.dashboard-content .stat-card h3 {
+.stat-card h3 {
   font-size: 0.95em;
   color: #666;
   margin-bottom: 10px;
   text-transform: uppercase;
 }
 
-.dashboard-content .stat-card .value {
+.stat-card .value {
   font-size: 2.2em;
   font-weight: 600;
   color: #2c3e50;
   margin-bottom: 5px;
 }
 
-.dashboard-content .stat-card .details {
+.stat-card .details {
   font-size: 0.9em;
   color: #777;
 }
 
 /* Variações de cor para os cards (opcional) */
-.dashboard-content .stat-card.prazos { border-left-color: #ffc107; } /* Amarelo */
-.dashboard-content .stat-card.atraso { border-left-color: #dc3545; } /* Vermelho */
-.dashboard-content .stat-card.concluidas { border-left-color: #28a745; } /* Verde */
-
-/* --- Seção Licitações Recentes/Próximas --- */
-.licitacoes-recentes-container {
-  margin-top: 40px;
-}
-
-.licitacoes-recentes-container h2 {
-  font-size: 1.5em;
-  color: #2c3e50;
-  margin-bottom: 20px;
-}
-
-/* Ajuste para layout em 3 colunas como na imagem */
-.licitacoes-andamento-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-    margin-top: 15px;
-}
-
-.licitacao-andamento-coluna h3 {
-    font-size: 1.1em;
-    color: #555;
-    margin-bottom: 10px;
-}
-
-.licitacao-recente-item {
-  background: #fff;
-  padding: 15px 20px;
-  border-radius: 6px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-  margin-bottom: 12px;
-}
-
-.licitacao-recente-item strong {
-  display: block;
-  font-size: 1.05em;
-  color: #333;
-  margin-bottom: 5px;
-}
-
-.licitacao-recente-item span {
-  font-size: 0.9em;
-  color: #666;
-  display: block;
-  line-height: 1.4;
-}
-
-.licitacao-recente-item .encerramento {
-  margin-top: 8px;
-  font-weight: 500;
-  color: #555;
-}
+.stat-card.prazos { border-left-color: #ffc107; } /* Amarelo */
+.stat-card.atraso { border-left-color: #dc3545; } /* Vermelho */
+.stat-card.concluidas { border-left-color: #28a745; } /* Verde */
 
 /* --- Tela de Licitações: Lista e Filtros --- */
 .filters {
@@ -508,7 +446,7 @@ body.login-page {
 }
 
 .empenho-form .cancel-button {
-  background-color: #f2f2f2; /* Cinza claro para cancelar */
+  background-color: #f2f2f2;
   color: #333;
 }
 
@@ -517,12 +455,12 @@ body.login-page {
 }
 
 .empenho-form .submit-button {
-  background-color: #007bff; /* Azul primário para submeter */
+  background-color: #007bff;
   color: white;
 }
 
 .empenho-form .submit-button:hover {
-  background-color: #0056b3; /* Azul mais escuro no hover */
+  background-color: #0056b3;
 }
 
 .empenho-form button:disabled {
@@ -580,7 +518,7 @@ body.login-page {
 }
 
 .action-button {
-  background-color: #007bff; /* Azul primário para ações */
+  background-color: #007bff;
   color: white;
   border: none;
   padding: 10px 20px;
@@ -592,7 +530,7 @@ body.login-page {
 }
 
 .action-button:hover {
-  background-color: #0056b3; /* Azul mais escuro no hover */
+  background-color: #0056b3;
 }
 
 /* Estilos para as abas */
@@ -613,7 +551,7 @@ body.login-page {
 }
 
 .tabs button.active {
-  border-bottom-color: #007bff; /* Azul primário para aba ativa */
+  border-bottom-color: #007bff;
   color: #007bff;
 }
 
@@ -647,8 +585,8 @@ body.login-page {
 }
 
 .status-concluida {
-  background-color: #f6ffed;
-  color: #52c41a;
+  background-color: #e6f7ff; /* Azul claro (padronizado) */
+  color: #007bff; /* Azul primário (padronizado) */
 }
 
 .status-cancelada {
@@ -729,7 +667,7 @@ body.login-page {
 }
 
 .prazos-form .cancel-button {
-  background-color: #f2f2f2; /* Cinza claro para cancelar */
+  background-color: #f2f2f2;
   color: #333;
 }
 
@@ -738,12 +676,12 @@ body.login-page {
 }
 
 .prazos-form .submit-button {
-  background-color: #007bff; /* Azul primário para submeter */
+  background-color: #007bff;
   color: white;
 }
 
 .prazos-form .submit-button:hover {
-  background-color: #0056b3; /* Azul mais escuro no hover */
+  background-color: #0056b3;
 }
 
 .prazos-form button:disabled {
@@ -833,7 +771,7 @@ body.login-page {
 }
 
 .documento-form .cancel-button {
-  background-color: #f2f2f2; /* Cinza claro para cancelar */
+  background-color: #f2f2f2;
   color: #333;
 }
 
@@ -842,12 +780,12 @@ body.login-page {
 }
 
 .documento-form .submit-button {
-  background-color: #007bff; /* Azul primário para submeter */
+  background-color: #007bff;
   color: white;
 }
 
 .documento-form .submit-button:hover {
-  background-color: #0056b3; /* Azul mais escuro no hover */
+  background-color: #0056b3;
 }
 
 .documento-form button:disabled {
@@ -874,10 +812,12 @@ body.login-page {
 
 .documento-item p {
   margin: 8px 0;
+  overflow-wrap: break-word; /* Quebra palavras longas para evitar overflow */
+  word-wrap: break-word; /* Fallback para navegadores mais antigos */
 }
 
 .documento-item a {
-  color: #007bff; /* Azul primário para links */
+  color: #007bff;
   text-decoration: none;
   font-weight: 600;
 }
@@ -945,4 +885,39 @@ body.login-page {
 }
 
 
+
+/* Estilos para a lista de comentários */
+.comentarios-list {
+  margin-top: 20px;
+  margin-bottom: 20px;
 }
+
+.comentario-item {
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 15px;
+  margin-bottom: 15px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.comentario-item .info {
+  font-size: 0.9em;
+  color: #666;
+  margin-bottom: 8px;
+  display: block; /* Coloca info em linha separada */
+}
+
+.comentario-item .info strong {
+  color: #333;
+  font-weight: 600;
+}
+
+.comentario-item .texto {
+  font-size: 1em;
+  color: #333;
+  line-height: 1.5;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+

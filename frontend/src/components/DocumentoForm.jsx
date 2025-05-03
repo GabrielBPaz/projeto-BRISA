@@ -148,7 +148,7 @@ function DocumentoForm({ licitacaoId, onSubmit, onCancel }) {
             <option value="nota_fiscal">Nota Fiscal</option>
             <option value="termo_aditivo">Termo Aditivo</option>
             <option value="ata">Ata</option>
-            <option value="ata">Foto</option>
+            <option value="foto">Foto</option>
             <option value="outro">Outro</option>
           </select>
           {errors.tipo && <span className="error-message">{errors.tipo}</span>}
