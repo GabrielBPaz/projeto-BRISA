@@ -1,5 +1,6 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
-import './index.css'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { useEffect } from 'react'; // Importar useEffect
+// import './index.css' // Removido - Já importado em main.jsx
 import Login from './pages/login';
 import Dashboard from './pages/Dashboard';
 import LicitacoesList from './pages/LicitacoesList';
@@ -9,6 +10,21 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 
 function App() {
+  const location = useLocation(); // Obter a localização atual
+
+  // Efeito para adicionar/remover a classe 'login-page' do body
+  useEffect(() => {
+    if (location.pathname === '/login') {
+      document.body.classList.add('login-page');
+    } else {
+      document.body.classList.remove('login-page');
+    }
+    // Limpeza: remover a classe ao desmontar o componente (opcional, mas boa prática)
+    return () => {
+      document.body.classList.remove('login-page');
+    };
+  }, [location.pathname]); // Executar o efeito quando o pathname mudar
+
   return (
     <Routes>
       {/* Rotas públicas */}

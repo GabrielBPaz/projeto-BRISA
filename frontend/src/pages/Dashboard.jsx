@@ -113,18 +113,49 @@ function Dashboard() {
 
             {/* Display Ongoing Bids (if any) */}
             {licitacoesAndamento.length > 0 && (
-                <>
-                    <h2>Licitações Recentes/Próximas</h2>
-                    <div className="licitacoes-andamento-container" style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '20px' }}>
-                        {licitacoesAndamento.map(lic => (
-                            <div key={lic.id} style={{ background: '#fff', padding: '15px', borderRadius: '5px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-                                <strong>{lic.numero_licitacao}</strong> ({lic.orgao?.nome || 'Órgão não informado'})<br />
-                                Objeto: {lic.objeto.substring(0, 100)}{lic.objeto.length > 100 ? '...' : ''}<br />
-                                Encerramento: {lic.data_encerramento ? new Date(lic.data_encerramento).toLocaleDateString() : 'Não definido'}
-                            </div>
-                        ))}
+                <div className="licitacoes-recentes-container">
+                    <h2>Licitações em Andamento</h2>
+                    <div className="licitacoes-andamento-grid">
+                        {/* Coluna Pendente (Exemplo, ajustar filtro conforme dados reais) */}
+                        <div className="licitacao-andamento-coluna">
+                            <h3>Pendente</h3>
+                            {licitacoesAndamento.filter(lic => lic.status === 'Pendente').map(lic => (
+                                <div key={lic.id} className="licitacao-recente-item">
+                                    <strong>{lic.numero_licitacao}</strong>
+                                    <span>{lic.orgao?.nome || 'Órgão não informado'}</span>
+                                    <span className="encerramento">Encerra: {lic.data_encerramento ? new Date(lic.data_encerramento).toLocaleDateString() : 'N/D'}</span>
+                                </div>
+                            ))}
+                            {licitacoesAndamento.filter(lic => lic.status === 'Pendente').length === 0 && <p>Nenhuma pendente.</p>}
+                        </div>
+
+                        {/* Coluna Em Andamento (Exemplo, ajustar filtro conforme dados reais) */}
+                        <div className="licitacao-andamento-coluna">
+                            <h3>Em Andamento</h3>
+                             {licitacoesAndamento.filter(lic => lic.status === 'Em Andamento' || lic.status === 'Em Aberto').map(lic => (
+                                <div key={lic.id} className="licitacao-recente-item">
+                                    <strong>{lic.numero_licitacao}</strong>
+                                    <span>{lic.orgao?.nome || 'Órgão não informado'}</span>
+                                    <span className="encerramento">Encerra: {lic.data_encerramento ? new Date(lic.data_encerramento).toLocaleDateString() : 'N/D'}</span>
+                                </div>
+                            ))}
+                             {(licitacoesAndamento.filter(lic => lic.status === 'Em Andamento' || lic.status === 'Em Aberto').length === 0) && <p>Nenhuma em andamento.</p>}
+                        </div>
+
+                        {/* Coluna Concluído (Exemplo, ajustar filtro conforme dados reais) */}
+                        <div className="licitacao-andamento-coluna">
+                            <h3>Concluído</h3>
+                            {licitacoesAndamento.filter(lic => lic.status === 'Concluído' || lic.status === 'Concluida').map(lic => (
+                                <div key={lic.id} className="licitacao-recente-item">
+                                    <strong>{lic.numero_licitacao}</strong>
+                                    <span>{lic.orgao?.nome || 'Órgão não informado'}</span>
+                                    <span className="encerramento">Concluída em: {lic.data_encerramento ? new Date(lic.data_encerramento).toLocaleDateString() : 'N/D'}</span>
+                                </div>
+                            ))}
+                            {(licitacoesAndamento.filter(lic => lic.status === 'Concluído' || lic.status === 'Concluida').length === 0) && <p>Nenhuma concluída recentemente.</p>}
+                        </div>
                     </div>
-                </>
+                </div>
             )}
 
             <FAB title="Adicionar Nova Licitação" onClick={handleAddClick} />

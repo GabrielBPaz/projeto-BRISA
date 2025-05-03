@@ -19,34 +19,56 @@ exports.criarLicitacao = async (req, res) => {
     editalPath = req.file.path; // Guardar o caminho temporário
 
     // Extrair dados do corpo da requisição
-    const { numero_licitacao, orgao_id, empresa_id, modalidade, objeto, valor_total, data_abertura, data_encerramento, status } = req.body;
-    const userId = req.userId;
+    const { numero_licitacao, orgao_id, /* empresa_id removido do body */ modalidade, objeto, valor_total, data_abertura, data_encerramento, status } = req.body;
+    const userId = req.userId; // ID do usuário vindo do middleware de autenticação
+    console.log(`[criarLicitacao] userId recebido: ${userId}`); // LOG 1: Verificar userId
+
+    // Buscar o usuário para obter o empresa_id
+    const usuario = await Usuario.findByPk(userId, { attributes: ["id", "empresa_id"] });
+    console.log(`[criarLicitacao] Resultado busca usuário: ${JSON.stringify(usuario)}`); // LOG 2: Verificar resultado da busca
+
+    if (!usuario) {
+        console.error(`[criarLicitacao] Usuário com ID ${userId} não encontrado.`);
+        await fs.unlink(editalPath);
+        return res.status(401).json({ success: false, message: "Usuário não autenticado ou não encontrado." });
+    }
+    const empresaIdUsuario = usuario.empresa_id;
+    console.log(`[criarLicitacao] empresaIdUsuario obtido: ${empresaIdUsuario}`); // LOG 3: Verificar empresaIdUsuario
 
     // Validação básica dos campos de texto (pode ser expandida)
     if (!numero_licitacao || !orgao_id || !modalidade || !objeto || !data_abertura) {
-        // Se a validação falhar, remover o arquivo temporário
+        console.warn(`[criarLicitacao] Validação falhou: Campos obrigatórios ausentes.`);
         await fs.unlink(editalPath);
-        return res.status(400).json({ success: false, message: "Campos obrigatórios não fornecidos." });
+        return res.status(400).json({ success: false, message: "Campos obrigatórios (Número, Órgão, Modalidade, Objeto, Data Abertura) não fornecidos." });
     }
 
-    // Criar a licitação no banco de dados
-    novaLicitacao = await Licitacao.create({
+    // Definir status padrão se não fornecido ou inválido (ajustar conforme necessidade)
+    const statusValido = status && ["Em Aberto", "Em Andamento", "Concluída", "Cancelada", "Suspensa", "ativa"].includes(status) ? status : "Em Aberto";
+    console.log(`[criarLicitacao] Status definido: ${statusValido}`); // LOG 4: Verificar status
+
+    // Montar objeto para criação
+    const dadosCriacao = {
       numero_licitacao,
       orgao_id: parseInt(orgao_id),
-      empresa_id: empresa_id ? parseInt(empresa_id) : null,
+      empresa_id: empresaIdUsuario, // Usar o ID da empresa do usuário logado
       modalidade,
       objeto,
       valor_total: valor_total ? parseFloat(valor_total) : null,
       data_abertura,
       data_encerramento: data_encerramento || null,
-      status: status || "Em Aberto",
-      // edital_arquivo: editalPath // Não salvar o caminho temporário aqui, faremos no Documento
-    });
+      status: statusValido, // Usar status validado ou padrão
+    };
+    console.log(`[criarLicitacao] Dados para Licitacao.create: ${JSON.stringify(dadosCriacao)}`); // LOG 5: Verificar dados antes de criar
+
+    // Criar a licitação no banco de dados
+    novaLicitacao = await Licitacao.create(dadosCriacao);
+    console.log(`[criarLicitacao] Licitação criada com ID: ${novaLicitacao.id}`);
 
     // Renomear o arquivo do edital para incluir o ID da licitação
     const novoNomeArquivo = `${Date.now()}-${novaLicitacao.id}-${req.file.originalname.replace(/\s+/g, "_")}`;
     const novoPath = path.join(path.dirname(editalPath), novoNomeArquivo);
     await fs.rename(editalPath, novoPath);
+    console.log(`[criarLicitacao] Edital renomeado para: ${novoPath}`);
 
     // Criar o registro do documento (edital) associado à licitação
     await Documento.create({
@@ -60,6 +82,7 @@ exports.criarLicitacao = async (req, res) => {
       licitacao_id: novaLicitacao.id,
       usuario_id: userId,
     });
+    console.log(`[criarLicitacao] Documento do edital criado para licitação ID: ${novaLicitacao.id}`);
 
     res.status(201).json({
       success: true,
@@ -68,14 +91,15 @@ exports.criarLicitacao = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Erro ao criar licitação:", error);
+    console.error("[criarLicitacao] Erro ao criar licitação:", error); // Log de erro
 
     // Se ocorreu erro após criar a licitação, tentar deletá-la (rollback manual)
     if (novaLicitacao && novaLicitacao.id) {
       try {
         await Licitacao.destroy({ where: { id: novaLicitacao.id } });
+        console.warn(`[criarLicitacao] Rollback: Licitação ID ${novaLicitacao.id} deletada após erro.`);
       } catch (deleteError) {
-        console.error("Erro ao tentar deletar licitação após falha:", deleteError);
+        console.error("[criarLicitacao] Erro ao tentar deletar licitação após falha:", deleteError);
       }
     }
 
@@ -83,9 +107,10 @@ exports.criarLicitacao = async (req, res) => {
     if (editalPath) {
       try {
         await fs.unlink(editalPath);
+        console.warn(`[criarLicitacao] Rollback: Arquivo de upload ${editalPath} deletado após erro.`);
       } catch (unlinkError) {
         // Se o arquivo já foi renomeado, tentar deletar pelo novo nome (melhoria futura)
-        console.error("Erro ao tentar deletar arquivo de upload após falha:", unlinkError);
+        console.error("[criarLicitacao] Erro ao tentar deletar arquivo de upload após falha:", unlinkError);
       }
     }
 
@@ -137,8 +162,9 @@ exports.getLicitacoes = async (req, res) => {
 
 // Obter detalhes de uma licitação por ID
 exports.getLicitacaoById = async (req, res) => {
+  const { id } = req.params;
+  console.log(`Buscando detalhes para licitação ID: ${id}`); // Log do ID
   try {
-    const { id } = req.params;
     const licitacao = await Licitacao.findByPk(id, {
       include: [
         { model: OrgaoPublico, as: "orgao", required: false },
@@ -152,30 +178,39 @@ exports.getLicitacaoById = async (req, res) => {
     });
 
     if (!licitacao) {
+      console.warn(`Licitação ID: ${id} não encontrada.`); // Log se não encontrada
       return res.status(404).json({ success: false, message: "Licitação não encontrada" });
     }
 
-    const documentos = await Documento.findAll({
-      where: { licitacao_id: id },
-      include: [{ model: Usuario, as: "usuario", attributes: ["id", "nome"] }],
-      order: [["data_upload", "DESC"]],
-    });
-
-    const comentarios = await Comentario.findAll({
-      where: { licitacao_id: id },
-      include: [{ model: Usuario, as: "usuario", attributes: ["id", "nome"] }],
-      order: [["data", "ASC"]],
-    });
+    // Buscar documentos e comentários separadamente para simplificar a query principal
+    const [documentos, comentarios] = await Promise.all([
+        Documento.findAll({
+            where: { licitacao_id: id },
+            include: [{ model: Usuario, as: "usuario", attributes: ["id", "nome"] }],
+            order: [["data_upload", "DESC"]],
+        }),
+        Comentario.findAll({
+            where: { licitacao_id: id },
+            include: [{ model: Usuario, as: "usuario", attributes: ["id", "nome"] }],
+            order: [["data", "ASC"]],
+        })
+    ]);
 
     const licitacaoData = licitacao.get({ plain: true });
     licitacaoData.documentos = documentos;
     licitacaoData.comentarios = comentarios;
 
+    console.log(`Detalhes da licitação ID: ${id} encontrados com sucesso.`); // Log de sucesso
     res.status(200).json({ success: true, data: licitacaoData });
 
   } catch (error) {
-    console.error("Erro em getLicitacaoById:", error);
-    res.status(500).json({ success: false, message: "Erro ao buscar detalhes da licitação", error: error.message });
+    // Log detalhado do erro no backend
+    console.error(`Erro detalhado ao buscar licitação ID: ${id}:`, error);
+    res.status(500).json({ 
+        success: false, 
+        message: "Erro interno ao buscar detalhes da licitação. Consulte os logs do servidor.", // Mensagem mais genérica para o usuário
+        error: error.message // Manter a mensagem original para depuração se necessário
+    });
   }
 };
 

@@ -7,47 +7,85 @@ const ufs = [
   "SC", "SP", "SE", "TO"
 ];
 
-function EmpenhoForm({ licitacaoId, onSubmit, onCancel }) {
+// Assume que licitacaoDetalhes contém o endereço do órgão da licitação
+function EmpenhoForm({ licitacaoId, licitacaoDetalhes, onSubmit, onCancel }) {
   const [formData, setFormData] = useState({
     numero: '',
     data: '',
     valor: '',
-    descricao: '', // Mantido no estado local, mas não enviado
-    cidade: '', // Novo campo Cidade
-    uf: '',     // Novo campo UF
+    // Campos de endereço de entrega
+    usarEnderecoLicitacao: true, // Default: usar endereço da licitação
+    rua: '',
+    numeroEndereco: '', // Renomeado para evitar conflito com 'numero' do empenho
+    complemento: '',
+    bairro: '',
+    cidade: '',
+    uf: '',
     licitacao_id: licitacaoId
   });
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Resetar form quando abrir/fechar (opcional, mas boa prática)
+  // Popula campos de endereço se 'usarEnderecoLicitacao' for true e detalhes estiverem disponíveis
+  useEffect(() => {
+    if (formData.usarEnderecoLicitacao && licitacaoDetalhes?.orgao) {
+      // Tenta extrair detalhes do endereço do órgão
+      // Idealmente, o backend retornaria o endereço do órgão de forma estruturada
+      // Por enquanto, vamos assumir que está no campo 'endereco' como texto e cidade/estado separados
+      const orgao = licitacaoDetalhes.orgao;
+      // Lógica simples para tentar separar rua/numero/bairro (pode precisar de ajuste)
+      const enderecoParts = orgao.endereco?.split(',') || [];
+      const rua = enderecoParts[0]?.trim() || '';
+      const numeroEndereco = enderecoParts[1]?.trim().match(/\d+/)?.[0] || ''; // Pega apenas números
+      const bairroMatch = orgao.endereco?.match(/Bairro:\s*(.*)/i);
+      const bairro = bairroMatch ? bairroMatch[1].trim() : '';
+
+      setFormData(prev => ({
+        ...prev,
+        rua: rua,
+        numeroEndereco: numeroEndereco,
+        complemento: '', // Complemento não costuma vir no endereço principal
+        bairro: bairro,
+        cidade: orgao.cidade || '',
+        uf: orgao.estado || ''
+      }));
+    } else if (!formData.usarEnderecoLicitacao) {
+      // Limpa campos se mudou para não usar endereço da licitação
+      // setFormData(prev => ({ ...prev, rua: '', numeroEndereco: '', complemento: '', bairro: '', cidade: '', uf: '' }));
+      // Não limpar automaticamente pode ser melhor UX, deixa o usuário decidir
+    }
+  }, [formData.usarEnderecoLicitacao, licitacaoDetalhes]);
+
+  // Resetar form quando abrir/fechar
   useEffect(() => {
     setFormData({
         numero: '',
         data: '',
         valor: '',
-        descricao: '',
+        usarEnderecoLicitacao: true,
+        rua: '',
+        numeroEndereco: '',
+        complemento: '',
+        bairro: '',
         cidade: '',
         uf: '',
         licitacao_id: licitacaoId
     });
     setErrors({});
-  }, [licitacaoId]); // Resetar se o licitacaoId mudar (caso o modal seja reutilizado)
+  }, [licitacaoId]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
+    const newValue = type === 'checkbox' ? checked : value;
+
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: newValue
     }));
 
-    // Limpar erro do campo quando o usuário começa a digitar
     if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: null
-      }));
+      setErrors(prev => ({ ...prev, [name]: null }));
     }
   };
 
@@ -64,11 +102,13 @@ function EmpenhoForm({ licitacaoId, onSubmit, onCancel }) {
     if (!formData.valor || isNaN(valorNumerico)) {
       newErrors.valor = 'Valor válido é obrigatório';
     }
-    if (!formData.cidade.trim()) { // Validação Cidade
-        newErrors.cidade = 'Cidade é obrigatória';
-    }
-    if (!formData.uf) { // Validação UF
-        newErrors.uf = 'UF é obrigatória';
+
+    // Valida endereço apenas se não estiver usando o da licitação
+    if (!formData.usarEnderecoLicitacao) {
+        if (!formData.rua.trim()) newErrors.rua = 'Rua é obrigatória';
+        if (!formData.cidade.trim()) newErrors.cidade = 'Cidade é obrigatória';
+        if (!formData.uf) newErrors.uf = 'UF é obrigatória';
+        // Outros campos de endereço podem ser opcionais
     }
 
     setErrors(newErrors);
@@ -85,21 +125,28 @@ function EmpenhoForm({ licitacaoId, onSubmit, onCancel }) {
     setIsSubmitting(true);
 
     try {
-      // Mapear os nomes dos campos e incluir cidade/uf
+      // Montar string de endereço de entrega
+      let enderecoEntrega = '';
+      if (formData.rua) enderecoEntrega += `${formData.rua}`;
+      if (formData.numeroEndereco) enderecoEntrega += `, ${formData.numeroEndereco}`;
+      if (formData.complemento) enderecoEntrega += ` - ${formData.complemento}`;
+      if (formData.bairro) enderecoEntrega += `, Bairro: ${formData.bairro}`;
+      if (formData.cidade) enderecoEntrega += ` - ${formData.cidade}`;
+      if (formData.uf) enderecoEntrega += `/${formData.uf.toUpperCase()}`;
+
       const empenhoDataParaEnviar = {
         numero_empenho: formData.numero,
         data_empenho: formData.data,
         valor_empenhado: parseFloat(formData.valor.replace(',', '.')), // Garantir que o valor seja numérico
-        cidade: formData.cidade, // Incluir cidade
-        uf: formData.uf,         // Incluir UF
-        licitacao_id: parseInt(licitacaoId)
-        // O campo 'descricao' não é enviado
+        licitacao_id: parseInt(licitacaoId),
+        // Adicionar campo para endereço de entrega (precisa ser criado no backend)
+        endereco_entrega: enderecoEntrega.trim() || null
       };
 
-      await onSubmit(empenhoDataParaEnviar); // Enviar os dados mapeados
+      await onSubmit(empenhoDataParaEnviar);
     } catch (error) {
       console.error('Erro ao salvar empenho:', error);
-      setErrors({ submit: 'Erro ao salvar o empenho. Tente novamente.' });
+      setErrors({ submit: error.response?.data?.message || 'Erro ao salvar o empenho. Tente novamente.' });
     } finally {
       setIsSubmitting(false);
     }
@@ -159,55 +206,68 @@ function EmpenhoForm({ licitacaoId, onSubmit, onCancel }) {
           {errors.valor && <span className="error-message" style={{ color: 'red', fontSize: '0.8em' }}>{errors.valor}</span>}
         </div>
 
-        {/* Cidade e UF */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', gap: '10px' }}>
-          <div style={{ width: '70%' }}>
-            <label htmlFor="cidade">Cidade (Entrega)*</label>
-            <input
-                type="text"
-                id="cidade"
-                name="cidade"
-                value={formData.cidade}
-                onChange={handleChange}
-                className={errors.cidade ? 'error' : ''}
-                disabled={isSubmitting}
-                style={{ width: '100%', padding: '8px', marginTop: '5px' }}
-            />
-            {errors.cidade && <span className="error-message" style={{ color: 'red', fontSize: '0.8em' }}>{errors.cidade}</span>}
-          </div>
-          <div style={{ width: '25%' }}>
-            <label htmlFor="uf">UF*</label>
-            <select
-                id="uf"
-                name="uf"
-                value={formData.uf}
-                onChange={handleChange}
-                className={errors.uf ? 'error' : ''}
-                disabled={isSubmitting}
-                style={{ width: '100%', padding: '8px', marginTop: '5px' }}
-            >
-              <option value="">UF</option>
-              {ufs.map(uf => (
-                <option key={uf} value={uf}>{uf}</option>
-              ))}
-            </select>
-            {errors.uf && <span className="error-message" style={{ color: 'red', fontSize: '0.8em' }}>{errors.uf}</span>}
-          </div>
+        {/* Opção de Endereço de Entrega */}
+        <div className="form-group" style={{ marginBottom: '15px' }}>
+            <label>
+                <input
+                    type="checkbox"
+                    name="usarEnderecoLicitacao"
+                    checked={formData.usarEnderecoLicitacao}
+                    onChange={handleChange}
+                    disabled={isSubmitting}
+                    style={{ marginRight: '8px' }}
+                />
+                Usar endereço do órgão da licitação para entrega
+            </label>
         </div>
 
-        {/* Descrição (Opcional, não salva no DB) */}
-        <div className="form-group" style={{ marginBottom: '15px' }}>
-          <label htmlFor="descricao">Descrição (Opcional)</label>
-          <textarea
-            id="descricao"
-            name="descricao"
-            value={formData.descricao}
-            onChange={handleChange}
-            rows="3"
-            disabled={isSubmitting}
-            style={{ width: '100%', padding: '8px', marginTop: '5px' }}
-          ></textarea>
-        </div>
+        {/* Campos de Endereço (condicional) */}
+        {!formData.usarEnderecoLicitacao && (
+            <div style={{ border: '1px solid #ccc', borderRadius: '4px', padding: '15px', marginBottom: '15px', backgroundColor: '#f9f9f9' }}>
+                <h4>Endereço de Entrega</h4>
+                {/* Rua e Número */}
+                <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                    <div style={{ width: '70%' }}>
+                        <label htmlFor="rua">Rua*</label>
+                        <input type="text" id="rua" name="rua" value={formData.rua} onChange={handleChange} disabled={isSubmitting} className={errors.rua ? 'error' : ''} style={{ width: '100%', padding: '8px', marginTop: '5px' }} />
+                        {errors.rua && <span className="error-message" style={{ color: 'red', fontSize: '0.8em' }}>{errors.rua}</span>}
+                    </div>
+                    <div style={{ width: '30%' }}>
+                        <label htmlFor="numeroEndereco">Número</label>
+                        <input type="text" id="numeroEndereco" name="numeroEndereco" value={formData.numeroEndereco} onChange={handleChange} disabled={isSubmitting} style={{ width: '100%', padding: '8px', marginTop: '5px' }} />
+                    </div>
+                </div>
+                {/* Complemento e Bairro */}
+                <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                    <div style={{ width: '50%' }}>
+                        <label htmlFor="complemento">Complemento</label>
+                        <input type="text" id="complemento" name="complemento" value={formData.complemento} onChange={handleChange} disabled={isSubmitting} style={{ width: '100%', padding: '8px', marginTop: '5px' }} />
+                    </div>
+                    <div style={{ width: '50%' }}>
+                        <label htmlFor="bairro">Bairro</label>
+                        <input type="text" id="bairro" name="bairro" value={formData.bairro} onChange={handleChange} disabled={isSubmitting} style={{ width: '100%', padding: '8px', marginTop: '5px' }} />
+                    </div>
+                </div>
+                {/* Cidade e UF */}
+                <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                    <div style={{ width: '70%' }}>
+                        <label htmlFor="cidade">Cidade*</label>
+                        <input type="text" id="cidade" name="cidade" value={formData.cidade} onChange={handleChange} disabled={isSubmitting} className={errors.cidade ? 'error' : ''} style={{ width: '100%', padding: '8px', marginTop: '5px' }} />
+                        {errors.cidade && <span className="error-message" style={{ color: 'red', fontSize: '0.8em' }}>{errors.cidade}</span>}
+                    </div>
+                    <div style={{ width: '25%' }}>
+                        <label htmlFor="uf">UF*</label>
+                        <select id="uf" name="uf" value={formData.uf} onChange={handleChange} disabled={isSubmitting} className={errors.uf ? 'error' : ''} style={{ width: '100%', padding: '8px', marginTop: '5px' }}>
+                            <option value="">UF</option>
+                            {ufs.map(uf => (
+                                <option key={uf} value={uf}>{uf}</option>
+                            ))}
+                        </select>
+                        {errors.uf && <span className="error-message" style={{ color: 'red', fontSize: '0.8em' }}>{errors.uf}</span>}
+                    </div>
+                </div>
+            </div>
+        )}
 
         {errors.submit && <div className="error-message submit-error" style={{ color: 'red', marginBottom: '15px' }}>{errors.submit}</div>}
 

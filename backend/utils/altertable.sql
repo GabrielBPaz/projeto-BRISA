@@ -42,3 +42,9 @@ ON DELETE SET NULL
 ON UPDATE CASCADE;
 
 
+ALTER TABLE empenhos ADD COLUMN endereco_entrega TEXT;
+ALTER TABLE empenhos ALTER COLUMN licitacao_id SET NOT NULL;
+ALTER TABLE empenhos ALTER COLUMN numero_empenho SET NOT NULL;
+ALTER TABLE empenhos ALTER COLUMN data_empenho SET NOT NULL;
+ALTER TABLE empenhos ALTER COLUMN valor_empenhado SET NOT NULL;
+

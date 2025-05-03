@@ -1,25 +1,19 @@
 module.exports = (sequelize, DataTypes) => {
   const Empenho = sequelize.define("Empenho", {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    licitacao_id: { type: DataTypes.INTEGER },
-    numero_empenho: DataTypes.STRING,
-    data_empenho: DataTypes.DATE,
-    valor_empenhado: DataTypes.DECIMAL(18,2),
-    arquivo: DataTypes.TEXT,
-    cidade: { type: DataTypes.STRING }, // Novo campo Cidade
-    uf: { type: DataTypes.STRING(2) }   // Novo campo UF (limitado a 2 caracteres)
+    licitacao_id: { type: DataTypes.INTEGER, allowNull: false }, // Tornar FK obrigatória
+    numero_empenho: { type: DataTypes.STRING, allowNull: false }, // Tornar obrigatório
+    data_empenho: { type: DataTypes.DATE, allowNull: false }, // Tornar obrigatório
+    valor_empenhado: { type: DataTypes.DECIMAL(18,2), allowNull: false }, // Tornar obrigatório
+    arquivo: DataTypes.TEXT, // Arquivo do empenho (opcional?)
+    endereco_entrega: { type: DataTypes.TEXT } // Novo campo para endereço de entrega completo
+    // Removidos campos cidade e uf, pois estarão em endereco_entrega ou tabela separada no futuro
   }, {
     tableName: "empenhos",
     timestamps: false,
   });
 
-  // Adicionar associação com Licitacao (se não estiver em index.js)
-  Empenho.associate = function(models) {
-      Empenho.belongsTo(models.Licitacao, { foreignKey: "licitacao_id", as: "licitacao" });
-      // Futuramente, adicionar associação com Entrega aqui, se necessário
-      // Empenho.hasMany(models.Entrega, { foreignKey: 'empenho_id', as: 'entregas' });
-  };
+  // Associação removida daqui e centralizada em models/index.js
 
   return Empenho;
 };
-

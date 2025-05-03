@@ -127,8 +127,17 @@ export const empresasService = {
 export const orgaosService = {
     getOrgaos: async () => {
         try {
-            const response = await api.get('/orgaos'); // Assumindo que a rota é /api/orgaos
+            const response = await api.get("/orgaos"); // Assumindo que a rota é /api/orgaos
             return response.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+    // Adicionada função para criar órgão
+    criarOrgao: async (dadosOrgao) => {
+        try {
+            const response = await api.post("/orgaos", dadosOrgao);
+            return response.data; // Espera-se que a API retorne { success: true, orgao: { id: ..., nome: ... } }
         } catch (error) {
             throw error;
         }

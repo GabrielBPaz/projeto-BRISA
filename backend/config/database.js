@@ -6,9 +6,11 @@ module.exports = {
   database: process.env.DB_NAME || 'LICNET',
   host: process.env.DB_HOST || 'localhost',
   dialect: 'postgres',
-  logging: process.env.NODE_ENV === 'development' ? console.log : false,
+  logging: false,
+  //logging: process.env.NODE_ENV === 'development' ? console.log : false,
   define: {
     timestamps: true,
     underscored: true,
   }
 };
+

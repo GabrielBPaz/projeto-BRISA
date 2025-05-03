@@ -2,11 +2,11 @@
   
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body {
+body:not(.login-page) {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background-color: #f4f7fa; /* Fundo cinza claro */
   color: #333;
-  display: flex; /* Necessário para algumas telas terem layout flex direto no body */
+  /* display: flex; // Removido para evitar conflitos globais */
   min-height: 100vh; /* Garante que o body ocupe toda a altura */
 }
 
@@ -119,25 +119,41 @@ button {
   justify-content: center;
   align-items: center;
   width: 100%;
-  background-color: #f4f7fa;
+  background-c/* --- Tela de Login --- */
+body.login-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f8f9fa; /* Fundo ligeiramente cinza */
+}
+
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  min-height: 100vh; /* Garante que o container ocupe a tela toda */
 }
 
 .login-box {
   background-color: #ffffff;
-  padding: 40px 50px;
+  padding: 40px 30px;
   border-radius: 8px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  text-align: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   width: 100%;
   max-width: 400px;
+  text-align: center;
+  /* Removido position, top, left, transform para usar flexbox do container */
 }
 
-.login-box h1 {
-  color: #2c3e50;
-  margin-bottom: 30px;
+.login-box h2 {
+  margin-bottom: 25px;
+  color: #333;
+  font-weight: 600;
 }
 
-.login-box .input-group {
+.login-box .form-group {
   margin-bottom: 20px;
   text-align: left;
 }
@@ -145,36 +161,30 @@ button {
 .login-box label {
   display: block;
   margin-bottom: 8px;
-  font-weight: 600;
+  font-weight: 500;
   color: #555;
 }
 
-.login-box input[type="text"],
-.login-box input[type="email"],
-.login-box input[type="password"] {
+.login-box input {
   width: 100%;
   padding: 12px 15px;
   border: 1px solid #ccc;
-  border-radius: 5px;
-  font-size: 1em;
-}
-
-.login-box input:focus {
-  outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
+  border-radius: 4px;
+  font-size: 16px;
 }
 
 .login-box button {
   width: 100%;
-  padding: 12px;
+  padding: 12px 20px;
   background-color: #007bff;
   color: white;
   border: none;
-  border-radius: 5px;
-  font-size: 1.1em;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
   font-weight: 600;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.3s;
+  margin-top: 10px; /* Espaço antes do botão */
 }
 
 .login-box button:hover {
@@ -182,14 +192,14 @@ button {
 }
 
 /* --- Dashboard: Painel de Controle (Cards) --- */
-.stats-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* Responsivo */
+.dashboard-content .stats-container {
+  display: grid; /* Removido !important */
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* Removido !important */
   gap: 25px;
   margin-bottom: 40px;
 }
 
-.stat-card {
+.dashboard-content .stat-card {
   background-color: #ffffff;
   padding: 20px;
   border-radius: 8px;
@@ -197,29 +207,82 @@ button {
   border-left: 4px solid #007bff; /* Borda azul à esquerda */
 }
 
-.stat-card h3 {
+.dashboard-content .stat-card h3 {
   font-size: 0.95em;
   color: #666;
   margin-bottom: 10px;
   text-transform: uppercase;
 }
 
-.stat-card .value {
+.dashboard-content .stat-card .value {
   font-size: 2.2em;
   font-weight: 600;
   color: #2c3e50;
   margin-bottom: 5px;
 }
 
-.stat-card .details {
+.dashboard-content .stat-card .details {
   font-size: 0.9em;
   color: #777;
 }
 
 /* Variações de cor para os cards (opcional) */
-.stat-card.prazos { border-left-color: #ffc107; } /* Amarelo */
-.stat-card.atraso { border-left-color: #dc3545; } /* Vermelho */
-.stat-card.concluidas { border-left-color: #28a745; } /* Verde */
+.dashboard-content .stat-card.prazos { border-left-color: #ffc107; } /* Amarelo */
+.dashboard-content .stat-card.atraso { border-left-color: #dc3545; } /* Vermelho */
+.dashboard-content .stat-card.concluidas { border-left-color: #28a745; } /* Verde */
+
+/* --- Seção Licitações Recentes/Próximas --- */
+.licitacoes-recentes-container {
+  margin-top: 40px;
+}
+
+.licitacoes-recentes-container h2 {
+  font-size: 1.5em;
+  color: #2c3e50;
+  margin-bottom: 20px;
+}
+
+/* Ajuste para layout em 3 colunas como na imagem */
+.licitacoes-andamento-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-top: 15px;
+}
+
+.licitacao-andamento-coluna h3 {
+    font-size: 1.1em;
+    color: #555;
+    margin-bottom: 10px;
+}
+
+.licitacao-recente-item {
+  background: #fff;
+  padding: 15px 20px;
+  border-radius: 6px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  margin-bottom: 12px;
+}
+
+.licitacao-recente-item strong {
+  display: block;
+  font-size: 1.05em;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.licitacao-recente-item span {
+  font-size: 0.9em;
+  color: #666;
+  display: block;
+  line-height: 1.4;
+}
+
+.licitacao-recente-item .encerramento {
+  margin-top: 8px;
+  font-weight: 500;
+  color: #555;
+}
 
 /* --- Tela de Licitações: Lista e Filtros --- */
 .filters {
@@ -445,7 +508,7 @@ button {
 }
 
 .empenho-form .cancel-button {
-  background-color: #f2f2f2;
+  background-color: #f2f2f2; /* Cinza claro para cancelar */
   color: #333;
 }
 
@@ -454,12 +517,12 @@ button {
 }
 
 .empenho-form .submit-button {
-  background-color: #4caf50;
+  background-color: #007bff; /* Azul primário para submeter */
   color: white;
 }
 
 .empenho-form .submit-button:hover {
-  background-color: #45a049;
+  background-color: #0056b3; /* Azul mais escuro no hover */
 }
 
 .empenho-form button:disabled {
@@ -517,7 +580,7 @@ button {
 }
 
 .action-button {
-  background-color: #4caf50;
+  background-color: #007bff; /* Azul primário para ações */
   color: white;
   border: none;
   padding: 10px 20px;
@@ -529,7 +592,7 @@ button {
 }
 
 .action-button:hover {
-  background-color: #45a049;
+  background-color: #0056b3; /* Azul mais escuro no hover */
 }
 
 /* Estilos para as abas */
@@ -550,8 +613,8 @@ button {
 }
 
 .tabs button.active {
-  border-bottom-color: #4caf50;
-  color: #4caf50;
+  border-bottom-color: #007bff; /* Azul primário para aba ativa */
+  color: #007bff;
 }
 
 .tab-content {
@@ -666,7 +729,7 @@ button {
 }
 
 .prazos-form .cancel-button {
-  background-color: #f2f2f2;
+  background-color: #f2f2f2; /* Cinza claro para cancelar */
   color: #333;
 }
 
@@ -675,12 +738,12 @@ button {
 }
 
 .prazos-form .submit-button {
-  background-color: #4caf50;
+  background-color: #007bff; /* Azul primário para submeter */
   color: white;
 }
 
 .prazos-form .submit-button:hover {
-  background-color: #45a049;
+  background-color: #0056b3; /* Azul mais escuro no hover */
 }
 
 .prazos-form button:disabled {
@@ -770,7 +833,7 @@ button {
 }
 
 .documento-form .cancel-button {
-  background-color: #f2f2f2;
+  background-color: #f2f2f2; /* Cinza claro para cancelar */
   color: #333;
 }
 
@@ -779,12 +842,12 @@ button {
 }
 
 .documento-form .submit-button {
-  background-color: #4caf50;
+  background-color: #007bff; /* Azul primário para submeter */
   color: white;
 }
 
 .documento-form .submit-button:hover {
-  background-color: #45a049;
+  background-color: #0056b3; /* Azul mais escuro no hover */
 }
 
 .documento-form button:disabled {
@@ -814,7 +877,7 @@ button {
 }
 
 .documento-item a {
-  color: #4caf50;
+  color: #007bff; /* Azul primário para links */
   text-decoration: none;
   font-weight: 600;
 }
@@ -879,4 +942,7 @@ button {
   display: flex;
   justify-content: space-between;
   margin-top: 20px;
+}
+
+
 }

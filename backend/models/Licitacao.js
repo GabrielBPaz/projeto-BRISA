@@ -16,16 +16,7 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: false,
   });
 
-  Licitacao.associate = function(models) {
-    Licitacao.belongsTo(models.OrgaoPublico, { foreignKey: "orgao_id", as: "orgao" });
-    Licitacao.belongsTo(models.Empresa, { foreignKey: "empresa_id", as: "empresa" });
-    // Adicione outras associações se necessário
-    // Revertido: Removendo associações adicionadas incorretamente aqui
-    // Licitacao.hasMany(models.Empenho, { foreignKey: 'licitacao_id', as: 'empenhos' });
-    // Licitacao.hasMany(models.Documento, { foreignKey: 'licitacao_id', as: 'documentos' });
-    // Licitacao.hasMany(models.Comentario, { foreignKey: 'licitacao_id', as: 'comentarios' });
-  };
+  // Associação removida daqui e centralizada em models/index.js
 
   return Licitacao;
 };
-
