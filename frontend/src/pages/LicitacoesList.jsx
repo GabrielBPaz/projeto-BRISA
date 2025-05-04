@@ -5,10 +5,11 @@ import LicitacaoItem from '../components/LicitacaoItem';
 import FAB from '../components/FAB';
 import NovaLicitacaoModal from '../components/NovaLicitacaoModal'; // Importar o modal
 import { licitacoesService, empresasService, orgaosService } from '../services/api'; // Importar todos os serviços necessários
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom'; // Importar useLocation
 
 function LicitacoesList() {
     const navigate = useNavigate();
+    const location = useLocation(); // Usar useLocation para acessar query params
     const [licitacoes, setLicitacoes] = useState([]);
     const [empresas, setEmpresas] = useState([]);
     const [orgaos, setOrgaos] = useState([]); // Estado para órgãos
@@ -18,11 +19,11 @@ function LicitacoesList() {
     const [isModalOpen, setIsModalOpen] = useState(false); // Estado para visibilidade do modal
 
     // Função para buscar licitações da API
-    const fetchLicitacoes = async () => {
+    const fetchLicitacoes = async (currentFilters) => { // Recebe os filtros atuais
         setLoading(true);
         setError(null);
         try {
-            const response = await licitacoesService.getLicitacoes(filters);
+            const response = await licitacoesService.getLicitacoes(currentFilters);
             if (response.success) {
                 setLicitacoes(response.data);
             } else {
@@ -65,20 +66,47 @@ function LicitacoesList() {
         }
     };
 
-    // Buscar dados iniciais (empresas, órgãos, licitações)
+    // Buscar dados iniciais e aplicar filtro da URL
     useEffect(() => {
         fetchEmpresas();
         fetchOrgaos();
-        fetchLicitacoes(); // fetchLicitacoes já é chamado pelo useEffect de filters
-    }, []); // Executar apenas na montagem inicial
+
+        // Ler o parâmetro 'status' da URL
+        const queryParams = new URLSearchParams(location.search);
+        const statusFromUrl = queryParams.get('status');
+
+        let initialFilters = {};
+        if (statusFromUrl) {
+            initialFilters = { status: statusFromUrl };
+            setFilters(initialFilters); // Define o filtro inicial
+        } else {
+             fetchLicitacoes({}); // Busca inicial sem filtro se não houver param na URL
+        }
+        // A busca com filtro será acionada pelo useEffect abaixo quando setFilters for chamado
+
+    }, [location.search]); // Re-executar se a URL search mudar
 
     // Re-buscar licitações quando os filtros mudarem
     useEffect(() => {
-        fetchLicitacoes();
+        // Só busca se filters não estiver vazio ou se não veio da URL (evita busca dupla inicial)
+        if (Object.keys(filters).length > 0) {
+             fetchLicitacoes(filters);
+        }
     }, [filters]);
 
     // Handlers para filtros e ordenação
     const handleFilterChange = (newFilters) => {
+        // Atualiza a URL sem recarregar a página (opcional, mas bom para UX)
+        const queryParams = new URLSearchParams(location.search);
+        Object.keys(newFilters).forEach(key => {
+            if (newFilters[key]) {
+                queryParams.set(key, newFilters[key]);
+            } else {
+                queryParams.delete(key);
+            }
+        });
+        navigate(`${location.pathname}?${queryParams.toString()}`, { replace: true });
+
         setFilters(prevFilters => ({ ...prevFilters, ...newFilters }));
     };
     const handleSortChange = (event) => {
@@ -102,7 +130,7 @@ function LicitacoesList() {
             if (response.success) {
                 alert('Licitação criada com sucesso!');
                 handleCloseModal();
-                fetchLicitacoes(); // Atualizar a lista após criar
+                fetchLicitacoes(filters); // Atualizar a lista após criar
             } else {
                 alert(`Erro ao criar licitação: ${response.message}`);
             }
@@ -125,6 +153,7 @@ function LicitacoesList() {
                 onSortChange={handleSortChange}
                 onFilterChange={handleFilterChange}
                 empresas={empresas}
+                initialFilters={filters} // Passa os filtros iniciais para o componente Filters
             />
 
             {loading && <p>Carregando licitações...</p>}
@@ -147,7 +176,7 @@ function LicitacoesList() {
                             />
                         ))
                     ) : (
-                        <p>Nenhuma licitação encontrada.</p>
+                        <p>Nenhuma licitação encontrada com os filtros aplicados.</p>
                     )}
                 </div>
             )}

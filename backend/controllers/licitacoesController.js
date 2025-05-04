@@ -1,5 +1,5 @@
 const { Licitacao, Empresa, OrgaoPublico, Empenho, NotaFiscal, Entrega, Usuario, Documento, Comentario, ItemEmpenho, AtaRegistro, Pagamento } = require("../models");
-const { Op } = require("sequelize");
+const { Op, Sequelize } = require("sequelize"); // Importar Sequelize para usar Sequelize.col
 const fs = require("fs").promises; // Usar promises para fs
 const path = require("path");
 
@@ -122,40 +122,73 @@ exports.criarLicitacao = async (req, res) => {
   }
 };
 
-// Obter todas as licitações
+// Obter todas as licitações com filtro e ordenação dinâmica
 exports.getLicitacoes = async (req, res) => {
   try {
-    const { empresaId, status, dataInicio, dataFim } = req.query;
+    const { empresaId, status, dataInicio, dataFim, sortBy } = req.query; // Adicionado sortBy
     const userRole = req.userRole;
     const userId = req.userId;
     const where = {};
 
     const usuario = await Usuario.findByPk(userId, { attributes: ["id", "empresa_id"] });
 
+    // Filtrar por empresa baseado no usuário ou query param (se admin)
     if (usuario && usuario.empresa_id) {
       where.empresa_id = usuario.empresa_id;
     } else if (userRole === "admin" && empresaId) {
       where.empresa_id = empresaId;
     } else if (userRole !== "admin") {
+      // Se não for admin e não tiver empresa_id, retorna vazio (ou ajusta regra)
       return res.json({ success: true, data: [] });
     }
 
+    // Aplicar filtros
     if (status) where.status = status;
     if (dataInicio && dataFim) where.data_abertura = { [Op.between]: [new Date(dataInicio), new Date(dataFim)] };
     else if (dataInicio) where.data_abertura = { [Op.gte]: new Date(dataInicio) };
     else if (dataFim) where.data_abertura = { [Op.lte]: new Date(dataFim) };
 
+    // Definir ordenação dinâmica
+    let order = [["data_abertura", "DESC"]]; // Padrão: Mais recente
+    if (sortBy) {
+      switch (sortBy) {
+        case "data_abertura_asc":
+          order = [["data_abertura", "ASC"]];
+          break;
+        case "proximo_prazo":
+          // Ordena por data_encerramento ASC, tratando nulos (coloca no final)
+          order = [[Sequelize.fn("isnull", Sequelize.col("data_encerramento")), "ASC"], ["data_encerramento", "ASC"]];
+          break;
+        case "orgao_az":
+          // Ordena pelo nome do órgão associado (A-Z)
+          order = [[{ model: OrgaoPublico, as: "orgao" }, "nome", "ASC"]];
+          break;
+        case "cidade_az":
+          // Ordena pela cidade do órgão associado (A-Z)
+          // ATENÇÃO: Certifique-se que o modelo OrgaoPublico tem o campo 'cidade'
+          order = [[{ model: OrgaoPublico, as: "orgao" }, "cidade", "ASC"]];
+          break;
+        // case "data_abertura_desc": // Já é o padrão
+        //   order = [["data_abertura", "DESC"]];
+        //   break;
+        default:
+          // Mantém o padrão se sortBy for inválido
+          order = [["data_abertura", "DESC"]];
+      }
+    }
+
     const licitacoes = await Licitacao.findAll({
       where,
       include: [
         { model: Empresa, as: "empresa", attributes: ["id", "nome_fantasia"] },
-        { model: OrgaoPublico, as: "orgao", attributes: ["id", "nome"] },
+        { model: OrgaoPublico, as: "orgao", attributes: ["id", "nome", "cidade", "estado"] }, // Incluir cidade/estado para ordenação e exibição
       ],
-      order: [["data_abertura", "DESC"]],
+      order: order, // Usar a ordenação dinâmica
     });
 
     res.json({ success: true, data: licitacoes });
   } catch (error) {
+    console.error("Erro ao buscar licitações:", error); // Log de erro no backend
     res.status(500).json({ success: false, message: "Erro ao buscar licitações", error: error.message });
   }
 };
@@ -239,19 +272,20 @@ exports.getDashboardStats = async (req, res) => {
       Licitacao.count({ where: { ...whereBase, status: { [Op.notIn]: ["concluida", "cancelada"] }, data_encerramento: { [Op.lt]: hoje, [Op.ne]: null } } }),
       Licitacao.count({ where: { ...whereBase, status: "concluida" } }),
       Licitacao.findAll({
-        where: { ...whereBase, status: { [Op.in]: ["ativa", "em_andamento"] } },
+        where: { ...whereBase, status: { [Op.in]: ["ativa", "em_andamento"] } }, // Ajustado para incluir "em_andamento"
         include: [
           { model: Empresa, as: "empresa", attributes: ["nome_fantasia"] },
           { model: OrgaoPublico, as: "orgao", attributes: ["nome"] },
         ],
         limit: 5,
-        order: [["data_encerramento", "ASC"]],
+        order: [[Sequelize.fn("isnull", Sequelize.col("data_encerramento")), "ASC"], ["data_encerramento", "ASC"]], // Ordenar por próximo prazo
       })
     ]);
 
     res.json({ success: true, data: { stats: { ativas, proximosPrazos, emAtraso, concluidas }, licitacoesAndamento } });
 
   } catch (error) {
+    console.error("Erro ao buscar estatísticas:", error); // Log de erro
     res.status(500).json({ success: false, message: "Erro ao buscar estatísticas", error: error.message });
   }
 };
